@@ -55,6 +55,9 @@ function LeadCard({ lead, onStatusChange }) {
   const [status, setStatus] = useState(lead.status || 'new')
   const [followUpDate, setFollowUpDate] = useState(lead.follow_up_date || '')
   const [showFollowUp, setShowFollowUp] = useState(false)
+  const [notes, setNotes] = useState(lead.notes || '')
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
 
   const handleStatus = async (newStatus) => {
     setStatus(newStatus)
@@ -71,6 +74,16 @@ function LeadCard({ lead, onStatusChange }) {
       .update({ follow_up_date: followUpDate })
       .eq('id', lead.id)
     setShowFollowUp(false)
+  }
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true)
+    await supabase
+      .from('posted_broker_leads')
+      .update({ notes })
+      .eq('id', lead.id)
+    setSavingNotes(false)
+    setEditingNotes(false)
   }
 
   const statusColors = {
@@ -123,6 +136,37 @@ function LeadCard({ lead, onStatusChange }) {
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>
           View Listing →
         </a>
+
+        {/* Notes */}
+        <div style={styles.notesSection}>
+          {editingNotes ? (
+            <>
+              <textarea
+                style={styles.notesInput}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Add notes about this seller..."
+                rows={3}
+              />
+              <div style={styles.notesButtons}>
+                <button onClick={handleSaveNotes} style={styles.saveBtn} disabled={savingNotes}>
+                  {savingNotes ? 'Saving...' : 'Save'}
+                </button>
+                <button onClick={() => setEditingNotes(false)} style={styles.cancelBtn}>
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <div onClick={() => setEditingNotes(true)} style={styles.notesDisplay}>
+              {notes ? (
+                <p style={styles.notesText}>📝 {notes}</p>
+              ) : (
+                <p style={styles.notesPlaceholder}>+ Add notes</p>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Status Buttons */}
         <div style={styles.statusRow}>
@@ -552,6 +596,42 @@ const styles = {
     fontWeight: '600',
     marginTop: '4px',
   },
+  notesSection: {
+    marginTop: '4px',
+  },
+  notesDisplay: {
+    cursor: 'pointer',
+    borderRadius: '6px',
+    padding: '6px 8px',
+    border: '1px dashed #3a3a3a',
+  },
+  notesText: {
+    color: '#ccc',
+    fontSize: '13px',
+    margin: 0,
+  },
+  notesPlaceholder: {
+    color: '#555',
+    fontSize: '13px',
+    margin: 0,
+  },
+  notesInput: {
+    width: '100%',
+    background: '#2a2a2a',
+    border: '1px solid #3a3a3a',
+    borderRadius: '6px',
+    padding: '8px',
+    color: '#ffffff',
+    fontSize: '13px',
+    outline: 'none',
+    resize: 'vertical',
+    boxSizing: 'border-box',
+  },
+  notesButtons: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '6px',
+  },
   statusRow: {
     display: 'flex',
     gap: '6px',
@@ -584,6 +664,15 @@ const styles = {
     background: '#2563eb',
     color: '#fff',
     border: 'none',
+    borderRadius: '6px',
+    padding: '6px 12px',
+    fontSize: '12px',
+    cursor: 'pointer',
+  },
+  cancelBtn: {
+    background: 'transparent',
+    color: '#888',
+    border: '1px solid #3a3a3a',
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '12px',
