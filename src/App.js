@@ -100,11 +100,45 @@ function LeadCard({ lead, onStatusChange }) {
     follow_up: 'Follow Up',
   }
 
+  const platformColors = {
+    facebook: '#1d4ed8',
+    craigslist: '#16a34a',
+    offerup: '#d97706',
+  }
+
+  const platform = lead.platform || 'facebook'
+  const platformColor = platformColors[platform] || '#1d4ed8'
+  const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
+
+  const hasKeywords = lead.matched_keywords?.length > 0
+  const hasPriceSignal = lead.discount_percent >= 20
+
   return (
     <div style={{
       ...styles.card,
       borderTop: `3px solid ${statusColors[status] || '#2563eb'}`
     }}>
+      {/* Platform Badge */}
+      <div style={{ ...styles.platformBanner, background: platformColor }}>
+        {platformLabel}
+      </div>
+
+      {/* Alert Banner */}
+      {(hasKeywords || hasPriceSignal) && (
+        <div style={styles.alertBanner}>
+          {hasKeywords && (
+            <span style={styles.alertPill}>
+              🚨 {lead.matched_keywords.join(' · ')}
+            </span>
+          )}
+          {hasPriceSignal && (
+            <span style={styles.pricePill}>
+              📉 {lead.discount_percent}% below avg
+            </span>
+          )}
+        </div>
+      )}
+
       {lead.image_url && (
         <img src={lead.image_url} alt={lead.title} style={styles.cardImage} />
       )}
@@ -113,9 +147,6 @@ function LeadCard({ lead, onStatusChange }) {
 
         <div style={styles.cardRow}>
           <span style={styles.price}>${lead.price?.toLocaleString()}</span>
-          {lead.discount_percent && (
-            <span style={styles.badge}>{lead.discount_percent}% below avg</span>
-          )}
         </div>
 
         {/* Boat Info Checklist */}
@@ -128,9 +159,6 @@ function LeadCard({ lead, onStatusChange }) {
         </div>
 
         {lead.location && <p style={styles.cardMeta}>📍 {lead.location}</p>}
-        {lead.matched_keywords?.length > 0 && (
-          <p style={styles.cardMeta}>🔑 {lead.matched_keywords.join(', ')}</p>
-        )}
         <p style={styles.cardMeta}>🕐 {new Date(lead.posted_at).toLocaleDateString()}</p>
 
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>
@@ -528,6 +556,38 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
   },
+  platformBanner: {
+    padding: '4px 12px',
+    fontSize: '11px',
+    fontWeight: '700',
+    color: '#fff',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+  alertBanner: {
+    background: '#111',
+    borderBottom: '1px solid #2a2a2a',
+    padding: '8px 12px',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+  },
+  alertPill: {
+    background: '#7f1d1d',
+    color: '#fca5a5',
+    fontSize: '11px',
+    fontWeight: '700',
+    padding: '3px 10px',
+    borderRadius: '20px',
+  },
+  pricePill: {
+    background: '#1e3a5f',
+    color: '#93c5fd',
+    fontSize: '11px',
+    fontWeight: '700',
+    padding: '3px 10px',
+    borderRadius: '20px',
+  },
   cardImage: {
     width: '100%',
     height: '200px',
@@ -554,14 +614,6 @@ const styles = {
     color: '#ffffff',
     fontSize: '20px',
     fontWeight: '700',
-  },
-  badge: {
-    background: '#1d4ed8',
-    color: '#ffffff',
-    fontSize: '11px',
-    padding: '2px 8px',
-    borderRadius: '20px',
-    fontWeight: '600',
   },
   checklist: {
     background: '#2a2a2a',
