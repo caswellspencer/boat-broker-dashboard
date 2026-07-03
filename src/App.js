@@ -113,17 +113,25 @@ function LeadCard({ lead, onStatusChange }) {
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
 
+  const getDaysAgo = (dateStr) => {
+    if (!dateStr) return null
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+    if (diff === 0) return 'Today'
+    if (diff === 1) return '1 day ago'
+    return `${diff} days ago`
+  }
+
   return (
     <div style={{
       ...styles.card,
       borderTop: `3px solid ${statusColors[status] || '#2563eb'}`
     }}>
-      {/* Platform Badge */}
       <div style={{ ...styles.platformBanner, background: platformColor }}>
         {platformLabel}
       </div>
 
-      {/* Alert Banner */}
       {(hasKeywords || hasPriceSignal) && (
         <div style={styles.alertBanner}>
           {hasKeywords && (
@@ -149,7 +157,6 @@ function LeadCard({ lead, onStatusChange }) {
           <span style={styles.price}>${lead.price?.toLocaleString()}</span>
         </div>
 
-        {/* Boat Info Checklist */}
         <div style={styles.checklist}>
           <CheckItem label="Year" value={lead.boat_year} />
           <CheckItem label="Make" value={lead.boat_make} />
@@ -159,13 +166,15 @@ function LeadCard({ lead, onStatusChange }) {
         </div>
 
         {lead.location && <p style={styles.cardMeta}>📍 {lead.location}</p>}
-        <p style={styles.cardMeta}>🕐 {new Date(lead.posted_at).toLocaleDateString()}</p>
+        {lead.listing_date && (
+          <p style={styles.cardMeta}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>
+        )}
+        <p style={styles.cardMeta}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
 
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>
           View Listing →
         </a>
 
-        {/* Notes */}
         <div style={styles.notesSection}>
           {editingNotes ? (
             <>
@@ -196,7 +205,6 @@ function LeadCard({ lead, onStatusChange }) {
           )}
         </div>
 
-        {/* Status Buttons */}
         <div style={styles.statusRow}>
           {['reached_out', 'follow_up', 'not_interested'].map(s => (
             <button
@@ -258,6 +266,10 @@ function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState('new')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
+  const [platformFilter, setPlatformFilter] = useState('all')
+  const [minYear, setMinYear] = useState('')
+  const [maxYear, setMaxYear] = useState('')
+  const [maxDaysAgo, setMaxDaysAgo] = useState('')
 
   const fetchLeads = async () => {
     const { data, error } = await supabase
@@ -280,6 +292,13 @@ function Dashboard({ user }) {
     if (activeTab === 'not_interested' && lead.status !== 'not_interested') return false
     if (minPrice && lead.price < parseInt(minPrice)) return false
     if (maxPrice && lead.price > parseInt(maxPrice)) return false
+    if (platformFilter !== 'all' && lead.platform !== platformFilter) return false
+    if (minYear && lead.boat_year && parseInt(lead.boat_year) < parseInt(minYear)) return false
+    if (maxYear && lead.boat_year && parseInt(lead.boat_year) > parseInt(maxYear)) return false
+    if (maxDaysAgo && lead.listing_date) {
+      const days = Math.floor((new Date() - new Date(lead.listing_date)) / (1000 * 60 * 60 * 24))
+      if (days > parseInt(maxDaysAgo)) return false
+    }
     return true
   })
 
@@ -287,7 +306,6 @@ function Dashboard({ user }) {
 
   return (
     <div style={styles.dashboard}>
-      {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.headerTitle}>🚤 Boat Broker Buys</h1>
         <div style={styles.headerRight}>
@@ -296,7 +314,6 @@ function Dashboard({ user }) {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={styles.statsBar}>
         <div style={styles.stat}>
           <span style={styles.statNumber}>{leads.filter(l => l.status === 'new').length}</span>
@@ -316,7 +333,6 @@ function Dashboard({ user }) {
         </div>
       </div>
 
-      {/* Filters */}
       <div style={styles.filterBar}>
         <div style={styles.tabs}>
           {['new', 'contacted', 'not_interested'].map(tab => (
@@ -333,7 +349,21 @@ function Dashboard({ user }) {
             </button>
           ))}
         </div>
-        <div style={styles.priceFilters}>
+
+        <div style={styles.filtersRight}>
+          {/* Platform filter */}
+          <select
+            style={styles.filterSelect}
+            value={platformFilter}
+            onChange={e => setPlatformFilter(e.target.value)}
+          >
+            <option value="all">All Platforms</option>
+            <option value="facebook">Facebook</option>
+            <option value="craigslist">Craigslist</option>
+            <option value="offerup">OfferUp</option>
+          </select>
+
+          {/* Price filters */}
           <input
             style={styles.filterInput}
             type="number"
@@ -348,14 +378,43 @@ function Dashboard({ user }) {
             value={maxPrice}
             onChange={e => setMaxPrice(e.target.value)}
           />
+
+          {/* Year filters */}
+          <input
+            style={styles.filterInput}
+            type="number"
+            placeholder="Min year"
+            value={minYear}
+            onChange={e => setMinYear(e.target.value)}
+          />
+          <input
+            style={styles.filterInput}
+            type="number"
+            placeholder="Max year"
+            value={maxYear}
+            onChange={e => setMaxYear(e.target.value)}
+          />
+
+          {/* Days on market */}
+          <select
+            style={styles.filterSelect}
+            value={maxDaysAgo}
+            onChange={e => setMaxDaysAgo(e.target.value)}
+          >
+            <option value="">Any age</option>
+            <option value="1">Today</option>
+            <option value="3">Last 3 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="14">Last 14 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
         </div>
       </div>
 
-      {/* Grid */}
       {loading ? (
         <p style={styles.loading}>Loading leads...</p>
       ) : filteredLeads.length === 0 ? (
-        <p style={styles.loading}>No leads in this category yet.</p>
+        <p style={styles.loading}>No leads match your filters.</p>
       ) : (
         <div style={styles.grid}>
           {filteredLeads.map(lead => (
@@ -515,6 +574,7 @@ const styles = {
     padding: '16px 32px',
     borderBottom: '1px solid #2a2a2a',
     gap: '16px',
+    flexWrap: 'wrap',
   },
   tabs: {
     display: 'flex',
@@ -528,9 +588,21 @@ const styles = {
     fontSize: '13px',
     fontWeight: '600',
   },
-  priceFilters: {
+  filtersRight: {
     display: 'flex',
     gap: '8px',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  filterSelect: {
+    background: '#2a2a2a',
+    border: '1px solid #3a3a3a',
+    borderRadius: '6px',
+    padding: '8px 12px',
+    color: '#ffffff',
+    fontSize: '13px',
+    outline: 'none',
+    cursor: 'pointer',
   },
   filterInput: {
     background: '#2a2a2a',
@@ -539,7 +611,7 @@ const styles = {
     padding: '8px 12px',
     color: '#ffffff',
     fontSize: '13px',
-    width: '120px',
+    width: '100px',
     outline: 'none',
   },
   grid: {
