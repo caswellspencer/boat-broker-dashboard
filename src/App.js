@@ -452,8 +452,9 @@ function Dashboard({ user }) {
 
   useEffect(() => { fetchLeads() }, [])
 
-  const handleLogout = async () => {
+    const handleLogout = async () => {
     await supabase.auth.signOut()
+    window.location.href = '/'
   }
 
   const filteredLeads = leads.filter(lead => {
