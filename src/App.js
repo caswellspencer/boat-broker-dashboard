@@ -1,14 +1,116 @@
 import React, { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase } from './supabaseClient'
+
+// ---------------------------------------------------------------------------
+// LANDING PAGE
+// ---------------------------------------------------------------------------
+function LandingPage() {
+  const navigate = useNavigate()
+
+  return (
+    <div style={styles.landing}>
+      {/* Nav */}
+      <div style={styles.nav}>
+        <span style={styles.navLogo}>🚤 Boat Broker Buys</span>
+        <button style={styles.navButton} onClick={() => navigate('/login')}>
+          Sign In
+        </button>
+      </div>
+
+      {/* Hero */}
+      <div style={styles.hero}>
+        <div style={styles.heroContent}>
+          <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
+          <h1 style={styles.heroTitle}>
+            Find Motivated Boat Sellers<br />Before Anyone Else Does
+          </h1>
+          <p style={styles.heroSubtitle}>
+            We scrape Facebook Marketplace and Craigslist for private boat sellers showing signs of urgency — moving out of state, financial pressure, must sell fast. Surface those leads to your desk twice a day.
+          </p>
+          <div style={styles.heroButtons}>
+            <button style={styles.heroCta} onClick={() => navigate('/signup')}>
+              Get Early Access
+            </button>
+            <button style={styles.heroSecondary} onClick={() => navigate('/login')}>
+              Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>How It Works</h2>
+        <div style={styles.steps}>
+          <div style={styles.step}>
+            <div style={styles.stepNumber}>01</div>
+            <h3 style={styles.stepTitle}>We Scrape</h3>
+            <p style={styles.stepText}>Every morning and afternoon we scan Facebook Marketplace and Craigslist for boats listed over $50k in your market.</p>
+          </div>
+          <div style={styles.step}>
+            <div style={styles.stepNumber}>02</div>
+            <h3 style={styles.stepTitle}>We Filter</h3>
+            <p style={styles.stepText}>Our system flags listings with motivated seller language — moving, must sell, financial, repo, estate sale — and pricing below market average.</p>
+          </div>
+          <div style={styles.step}>
+            <div style={styles.stepNumber}>03</div>
+            <h3 style={styles.stepTitle}>You Close</h3>
+            <p style={styles.stepText}>You get an email alert the moment a lead hits. Log in to your dashboard, review the details, and reach out before the competition.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Value prop */}
+      <div style={styles.valueSection}>
+        <div style={styles.valueCard}>
+          <div style={styles.valueIcon}>📍</div>
+          <h3 style={styles.valueTitle}>Facebook + Craigslist</h3>
+          <p style={styles.valueText}>Two platforms, one dashboard. Craigslist listings are color coded so you always know your source.</p>
+        </div>
+        <div style={styles.valueCard}>
+          <div style={styles.valueIcon}>🚨</div>
+          <h3 style={styles.valueTitle}>Motivated Seller Detection</h3>
+          <p style={styles.valueText}>We read every listing description and flag the signals brokers care about — urgency, price cuts, life events.</p>
+        </div>
+        <div style={styles.valueCard}>
+          <div style={styles.valueIcon}>📧</div>
+          <h3 style={styles.valueTitle}>Instant Email Alerts</h3>
+          <p style={styles.valueText}>Get notified the moment a new lead hits your market. No need to check the dashboard — we come to you.</p>
+        </div>
+        <div style={styles.valueCard}>
+          <div style={styles.valueIcon}>📋</div>
+          <h3 style={styles.valueTitle}>Built-in CRM</h3>
+          <p style={styles.valueText}>Track outreach, set follow up reminders, and add notes — all inside your lead dashboard.</p>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={styles.ctaSection}>
+        <h2 style={styles.ctaTitle}>Ready to Find Your Next Listing?</h2>
+        <p style={styles.ctaSubtitle}>Join yacht brokers already using motivated seller intelligence to grow their book of business.</p>
+        <button style={styles.heroCta} onClick={() => navigate('/signup')}>
+          Get Early Access
+        </button>
+      </div>
+
+      {/* Footer */}
+      <div style={styles.footer}>
+        <p style={styles.footerText}>© 2025 Boat Broker Buys. Built for yacht brokers.</p>
+      </div>
+    </div>
+  )
+}
 
 // ---------------------------------------------------------------------------
 // LOGIN
 // ---------------------------------------------------------------------------
-function Login() {
+function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
   const handleLogin = async () => {
     setLoading(true)
@@ -19,10 +121,10 @@ function Login() {
   }
 
   return (
-    <div style={styles.loginContainer}>
-      <div style={styles.loginBox}>
-        <h1 style={styles.loginTitle}>🚤 Boat Broker Buys</h1>
-        <p style={styles.loginSubtitle}>Motivated seller leads for yacht brokers</p>
+    <div style={styles.authContainer}>
+      <div style={styles.authBox}>
+        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 Boat Broker Buys</div>
+        <h2 style={styles.authTitle}>Sign In</h2>
         <input
           style={styles.input}
           type="email"
@@ -43,6 +145,85 @@ function Login() {
         <button style={styles.button} onClick={handleLogin} disabled={loading}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
+        <p style={styles.authSwitch}>
+          Don't have an account?{' '}
+          <span style={styles.authLink} onClick={() => navigate('/signup')}>Sign up</span>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// SIGNUP
+// ---------------------------------------------------------------------------
+function SignupPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const navigate = useNavigate()
+
+  const handleSignup = async () => {
+    setLoading(true)
+    setError('')
+    const { error } = await supabase.auth.signUp({ email, password })
+    if (error) {
+      setError(error.message)
+    } else {
+      setSuccess(true)
+    }
+    setLoading(false)
+  }
+
+  if (success) {
+    return (
+      <div style={styles.authContainer}>
+        <div style={styles.authBox}>
+          <div style={styles.authLogo}>🚤 Boat Broker Buys</div>
+          <h2 style={styles.authTitle}>You're on the list</h2>
+          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>
+            We'll review your request and get you access shortly. Keep an eye on your inbox.
+          </p>
+          <button style={styles.button} onClick={() => navigate('/')}>Back to Home</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={styles.authContainer}>
+      <div style={styles.authBox}>
+        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 Boat Broker Buys</div>
+        <h2 style={styles.authTitle}>Get Early Access</h2>
+        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>
+          We're currently onboarding brokers by market. Submit your info and we'll be in touch.
+        </p>
+        <input
+          style={styles.input}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSignup()}
+        />
+        <input
+          style={styles.input}
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSignup()}
+        />
+        {error && <p style={styles.error}>{error}</p>}
+        <button style={styles.button} onClick={handleSignup} disabled={loading}>
+          {loading ? 'Submitting...' : 'Request Access'}
+        </button>
+        <p style={styles.authSwitch}>
+          Already have an account?{' '}
+          <span style={styles.authLink} onClick={() => navigate('/login')}>Sign in</span>
+        </p>
       </div>
     </div>
   )
@@ -109,7 +290,6 @@ function LeadCard({ lead, onStatusChange }) {
   const platform = lead.platform || 'facebook'
   const platformColor = platformColors[platform] || '#1d4ed8'
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
-
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
 
@@ -124,10 +304,7 @@ function LeadCard({ lead, onStatusChange }) {
   }
 
   return (
-    <div style={{
-      ...styles.card,
-      borderTop: `3px solid ${statusColors[status] || '#2563eb'}`
-    }}>
+    <div style={{ ...styles.card, borderTop: `3px solid ${statusColors[status] || '#2563eb'}` }}>
       <div style={{ ...styles.platformBanner, background: platformColor }}>
         {platformLabel}
       </div>
@@ -135,14 +312,10 @@ function LeadCard({ lead, onStatusChange }) {
       {(hasKeywords || hasPriceSignal) && (
         <div style={styles.alertBanner}>
           {hasKeywords && (
-            <span style={styles.alertPill}>
-              🚨 {lead.matched_keywords.join(' · ')}
-            </span>
+            <span style={styles.alertPill}>🚨 {lead.matched_keywords.join(' · ')}</span>
           )}
           {hasPriceSignal && (
-            <span style={styles.pricePill}>
-              📉 {lead.discount_percent}% below avg
-            </span>
+            <span style={styles.pricePill}>📉 {lead.discount_percent}% below avg</span>
           )}
         </div>
       )}
@@ -152,7 +325,6 @@ function LeadCard({ lead, onStatusChange }) {
       )}
       <div style={styles.cardBody}>
         <h3 style={styles.cardTitle}>{lead.title}</h3>
-
         <div style={styles.cardRow}>
           <span style={styles.price}>${lead.price?.toLocaleString()}</span>
         </div>
@@ -189,9 +361,7 @@ function LeadCard({ lead, onStatusChange }) {
                 <button onClick={handleSaveNotes} style={styles.saveBtn} disabled={savingNotes}>
                   {savingNotes ? 'Saving...' : 'Save'}
                 </button>
-                <button onClick={() => setEditingNotes(false)} style={styles.cancelBtn}>
-                  Cancel
-                </button>
+                <button onClick={() => setEditingNotes(false)} style={styles.cancelBtn}>Cancel</button>
               </div>
             </>
           ) : (
@@ -349,58 +519,18 @@ function Dashboard({ user }) {
             </button>
           ))}
         </div>
-
         <div style={styles.filtersRight}>
-          {/* Platform filter */}
-          <select
-            style={styles.filterSelect}
-            value={platformFilter}
-            onChange={e => setPlatformFilter(e.target.value)}
-          >
+          <select style={styles.filterSelect} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
             <option value="craigslist">Craigslist</option>
             <option value="offerup">OfferUp</option>
           </select>
-
-          {/* Price filters */}
-          <input
-            style={styles.filterInput}
-            type="number"
-            placeholder="Min price"
-            value={minPrice}
-            onChange={e => setMinPrice(e.target.value)}
-          />
-          <input
-            style={styles.filterInput}
-            type="number"
-            placeholder="Max price"
-            value={maxPrice}
-            onChange={e => setMaxPrice(e.target.value)}
-          />
-
-          {/* Year filters */}
-          <input
-            style={styles.filterInput}
-            type="number"
-            placeholder="Min year"
-            value={minYear}
-            onChange={e => setMinYear(e.target.value)}
-          />
-          <input
-            style={styles.filterInput}
-            type="number"
-            placeholder="Max year"
-            value={maxYear}
-            onChange={e => setMaxYear(e.target.value)}
-          />
-
-          {/* Days on market */}
-          <select
-            style={styles.filterSelect}
-            value={maxDaysAgo}
-            onChange={e => setMaxDaysAgo(e.target.value)}
-          >
+          <input style={styles.filterInput} type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+          <input style={styles.filterInput} type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+          <input style={styles.filterInput} type="number" placeholder="Min year" value={minYear} onChange={e => setMinYear(e.target.value)} />
+          <input style={styles.filterInput} type="number" placeholder="Max year" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
+          <select style={styles.filterSelect} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
             <option value="">Any age</option>
             <option value="1">Today</option>
             <option value="3">Last 3 days</option>
@@ -429,7 +559,7 @@ function Dashboard({ user }) {
 // ---------------------------------------------------------------------------
 // APP
 // ---------------------------------------------------------------------------
-export default function App() {
+function AppContent() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -438,30 +568,224 @@ export default function App() {
       setUser(session?.user ?? null)
       setLoading(false)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
-  if (loading) return <div style={styles.loginContainer}><p style={{ color: '#fff' }}>Loading...</p></div>
-  return user ? <Dashboard user={user} /> : <Login />
+  if (loading) return <div style={styles.authContainer}><p style={{ color: '#fff' }}>Loading...</p></div>
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+      <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <SignupPage />} />
+      <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  )
 }
 
 // ---------------------------------------------------------------------------
 // STYLES
 // ---------------------------------------------------------------------------
 const styles = {
-  loginContainer: {
+  // Landing
+  landing: {
+    background: '#0a0a0a',
+    minHeight: '100vh',
+    color: '#ffffff',
+    fontFamily: 'sans-serif',
+  },
+  nav: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '20px 60px',
+    borderBottom: '1px solid #1a1a1a',
+  },
+  navLogo: {
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  navButton: {
+    background: 'transparent',
+    border: '1px solid #3a3a3a',
+    borderRadius: '6px',
+    color: '#888',
+    padding: '8px 20px',
+    cursor: 'pointer',
+    fontSize: '13px',
+  },
+  hero: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '100px 60px',
+    textAlign: 'center',
+  },
+  heroContent: {
+    maxWidth: '720px',
+  },
+  heroBadge: {
+    display: 'inline-block',
+    background: '#1a1a1a',
+    border: '1px solid #2563eb',
+    color: '#2563eb',
+    fontSize: '12px',
+    fontWeight: '600',
+    padding: '4px 14px',
+    borderRadius: '20px',
+    marginBottom: '24px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+  heroTitle: {
+    fontSize: '52px',
+    fontWeight: '800',
+    lineHeight: '1.1',
+    margin: '0 0 24px 0',
+    color: '#ffffff',
+  },
+  heroSubtitle: {
+    fontSize: '18px',
+    color: '#888',
+    lineHeight: '1.7',
+    margin: '0 0 40px 0',
+  },
+  heroButtons: {
+    display: 'flex',
+    gap: '16px',
+    justifyContent: 'center',
+  },
+  heroCta: {
+    background: '#2563eb',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '14px 32px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  heroSecondary: {
+    background: 'transparent',
+    color: '#888',
+    border: '1px solid #3a3a3a',
+    borderRadius: '8px',
+    padding: '14px 32px',
+    fontSize: '16px',
+    cursor: 'pointer',
+  },
+  section: {
+    padding: '80px 60px',
+    borderTop: '1px solid #1a1a1a',
+  },
+  sectionTitle: {
+    fontSize: '32px',
+    fontWeight: '700',
+    textAlign: 'center',
+    margin: '0 0 60px 0',
+  },
+  steps: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '40px',
+    maxWidth: '900px',
+    margin: '0 auto',
+  },
+  step: {
+    textAlign: 'center',
+  },
+  stepNumber: {
+    fontSize: '48px',
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: '16px',
+  },
+  stepTitle: {
+    fontSize: '20px',
+    fontWeight: '700',
+    marginBottom: '12px',
+    color: '#ffffff',
+  },
+  stepText: {
+    fontSize: '14px',
+    color: '#888',
+    lineHeight: '1.7',
+  },
+  valueSection: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '24px',
+    padding: '80px 60px',
+    borderTop: '1px solid #1a1a1a',
+  },
+  valueCard: {
+    background: '#1a1a1a',
+    borderRadius: '12px',
+    padding: '32px 24px',
+    border: '1px solid #2a2a2a',
+  },
+  valueIcon: {
+    fontSize: '32px',
+    marginBottom: '16px',
+  },
+  valueTitle: {
+    fontSize: '16px',
+    fontWeight: '700',
+    marginBottom: '12px',
+    color: '#ffffff',
+  },
+  valueText: {
+    fontSize: '14px',
+    color: '#888',
+    lineHeight: '1.7',
+    margin: 0,
+  },
+  ctaSection: {
+    textAlign: 'center',
+    padding: '100px 60px',
+    borderTop: '1px solid #1a1a1a',
+  },
+  ctaTitle: {
+    fontSize: '40px',
+    fontWeight: '800',
+    margin: '0 0 16px 0',
+  },
+  ctaSubtitle: {
+    fontSize: '16px',
+    color: '#888',
+    margin: '0 0 40px 0',
+  },
+  footer: {
+    padding: '32px 60px',
+    borderTop: '1px solid #1a1a1a',
+    textAlign: 'center',
+  },
+  footerText: {
+    color: '#555',
+    fontSize: '13px',
+    margin: 0,
+  },
+  // Auth
+  authContainer: {
     minHeight: '100vh',
     background: '#0a0a0a',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  loginBox: {
+  authBox: {
     background: '#1a1a1a',
     padding: '40px',
     borderRadius: '12px',
@@ -471,17 +795,28 @@ const styles = {
     gap: '16px',
     border: '1px solid #2a2a2a',
   },
-  loginTitle: {
+  authLogo: {
+    fontSize: '18px',
+    fontWeight: '700',
     color: '#ffffff',
-    fontSize: '24px',
+    textAlign: 'center',
+    cursor: 'pointer',
+  },
+  authTitle: {
+    color: '#ffffff',
+    fontSize: '22px',
     margin: 0,
     textAlign: 'center',
   },
-  loginSubtitle: {
+  authSwitch: {
     color: '#888',
-    fontSize: '14px',
-    margin: 0,
+    fontSize: '13px',
     textAlign: 'center',
+    margin: 0,
+  },
+  authLink: {
+    color: '#2563eb',
+    cursor: 'pointer',
   },
   input: {
     background: '#2a2a2a',
@@ -509,6 +844,7 @@ const styles = {
     fontSize: '13px',
     margin: 0,
   },
+  // Dashboard
   dashboard: {
     minHeight: '100vh',
     background: '#0a0a0a',
