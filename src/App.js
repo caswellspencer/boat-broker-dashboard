@@ -198,8 +198,22 @@ function LeadCard({ lead, onStatusChange }) {
     setEditingNotes(false)
   }
 
-  const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706' }
-  const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up' }
+  const statusColors = {
+    new: '#2563eb',
+    reached_out: '#16a34a',
+    not_interested: '#dc2626',
+    follow_up: '#d97706',
+    connected: '#7c3aed',
+  }
+
+  const statusLabels = {
+    new: 'New',
+    reached_out: 'Reached Out',
+    not_interested: 'Not Interested',
+    follow_up: 'Follow Up',
+    connected: 'Connected',
+  }
+
   const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
 
   const platform = lead.platform || 'facebook'
@@ -233,22 +247,13 @@ function LeadCard({ lead, onStatusChange }) {
         </div>
       )}
 
-      {/* Photo Carousel */}
       {photos.length > 0 && (
         <div style={{ position: 'relative' }}>
           <img src={photos[photoIndex]} alt={lead.title} style={styles.cardImage} />
           {photos.length > 1 && (
             <>
-              <button
-                onClick={() => setPhotoIndex(i => Math.max(0, i - 1))}
-                style={{ ...styles.photoBtn, left: '8px', opacity: photoIndex === 0 ? 0.3 : 1 }}
-                disabled={photoIndex === 0}
-              >‹</button>
-              <button
-                onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))}
-                style={{ ...styles.photoBtn, right: '8px', opacity: photoIndex === photos.length - 1 ? 0.3 : 1 }}
-                disabled={photoIndex === photos.length - 1}
-              >›</button>
+              <button onClick={() => setPhotoIndex(i => Math.max(0, i - 1))} style={{ ...styles.photoBtn, left: '8px', opacity: photoIndex === 0 ? 0.3 : 1 }} disabled={photoIndex === 0}>‹</button>
+              <button onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))} style={{ ...styles.photoBtn, right: '8px', opacity: photoIndex === photos.length - 1 ? 0.3 : 1 }} disabled={photoIndex === photos.length - 1}>›</button>
               <div style={styles.photoCounter}>{photoIndex + 1} / {photos.length}</div>
             </>
           )}
@@ -273,7 +278,6 @@ function LeadCard({ lead, onStatusChange }) {
         {lead.listing_date && <p style={styles.cardMeta}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>}
         <p style={styles.cardMeta}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
 
-        {/* Collapsible Description */}
         {lead.description && (
           <div>
             <button onClick={() => setShowDescription(!showDescription)} style={styles.descriptionToggle}>
@@ -306,7 +310,7 @@ function LeadCard({ lead, onStatusChange }) {
         </div>
 
         <div style={styles.statusRow}>
-          {['reached_out', 'follow_up', 'not_interested'].map(s => (
+          {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
             <button
               key={s}
               onClick={() => { handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
@@ -373,10 +377,19 @@ function Dashboard({ user }) {
     window.location.href = '/'
   }
 
+  const tabs = ['new', 'contacted', 'connected', 'not_interested']
+  const tabLabels = {
+    new: 'New Leads',
+    contacted: 'Contacted',
+    connected: 'Connected',
+    not_interested: 'Not Interested',
+  }
+
   const filteredLeads = leads
     .filter(lead => {
       if (activeTab === 'new' && lead.status !== 'new') return false
       if (activeTab === 'contacted' && !['reached_out', 'follow_up'].includes(lead.status)) return false
+      if (activeTab === 'connected' && lead.status !== 'connected') return false
       if (activeTab === 'not_interested' && lead.status !== 'not_interested') return false
       if (minPrice && lead.price < parseInt(minPrice)) return false
       if (maxPrice && lead.price > parseInt(maxPrice)) return false
@@ -424,6 +437,10 @@ function Dashboard({ user }) {
           <span style={styles.statLabel}>Reached Out</span>
         </div>
         <div style={styles.stat}>
+          <span style={styles.statNumber}>{leads.filter(l => l.status === 'connected').length}</span>
+          <span style={styles.statLabel}>Connected</span>
+        </div>
+        <div style={styles.stat}>
           <span style={styles.statNumber}>{followUps.length}</span>
           <span style={styles.statLabel}>Follow Ups</span>
         </div>
@@ -435,13 +452,13 @@ function Dashboard({ user }) {
 
       <div style={styles.filterBar}>
         <div style={styles.tabs}>
-          {['new', 'contacted', 'not_interested'].map(tab => (
+          {tabs.map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               style={{ ...styles.tab, background: activeTab === tab ? '#2563eb' : 'transparent', color: activeTab === tab ? '#fff' : '#888' }}
             >
-              {tab === 'new' ? 'New Leads' : tab === 'contacted' ? 'Contacted' : 'Not Interested'}
+              {tabLabels[tab]}
             </button>
           ))}
         </div>
