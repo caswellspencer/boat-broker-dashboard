@@ -12,7 +12,7 @@ function LandingPage() {
     <div style={styles.landing}>
       {/* Nav */}
       <div style={styles.nav}>
-        <span style={styles.navLogo}>🚤 Boat Broker Buys</span>
+        <span style={styles.navLogo}>🚤 YachtWatch</span>
         <button style={styles.navButton} onClick={() => navigate('/login')}>
           Sign In
         </button>
@@ -96,7 +96,7 @@ function LandingPage() {
 
       {/* Footer */}
       <div style={styles.footer}>
-        <p style={styles.footerText}>© 2025 Boat Broker Buys. Built for yacht brokers.</p>
+        <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
       </div>
     </div>
   )
@@ -123,7 +123,7 @@ function LoginPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 Boat Broker Buys</div>
+        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 YachtWatch</div>
         <h2 style={styles.authTitle}>Sign In</h2>
         <input
           style={styles.input}
@@ -181,7 +181,7 @@ function SignupPage() {
     return (
       <div style={styles.authContainer}>
         <div style={styles.authBox}>
-          <div style={styles.authLogo}>🚤 Boat Broker Buys</div>
+          <div style={styles.authLogo}>🚤 YachtWatch</div>
           <h2 style={styles.authTitle}>You're on the list</h2>
           <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>
             We'll review your request and get you access shortly. Keep an eye on your inbox.
@@ -195,7 +195,7 @@ function SignupPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 Boat Broker Buys</div>
+        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 YachtWatch</div>
         <h2 style={styles.authTitle}>Get Early Access</h2>
         <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>
           We're currently onboarding brokers by market. Submit your info and we'll be in touch.
@@ -478,7 +478,7 @@ function Dashboard({ user }) {
   return (
     <div style={styles.dashboard}>
       <div style={styles.header}>
-        <h1 style={styles.headerTitle}>🚤 Boat Broker Buys</h1>
+        <h1 style={styles.headerTitle}>🚤 YachtWatch</h1>
         <div style={styles.headerRight}>
           <span style={styles.userEmail}>{user.email}</span>
           <button style={styles.logoutButton} onClick={handleLogout}>Sign Out</button>
