@@ -178,6 +178,7 @@ function LeadCard({ lead, onStatusChange }) {
   const [editingNotes, setEditingNotes] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
   const [showDescription, setShowDescription] = useState(false)
+  const [photoIndex, setPhotoIndex] = useState(0)
 
   const handleStatus = async (newStatus) => {
     setStatus(newStatus)
@@ -207,6 +208,12 @@ function LeadCard({ lead, onStatusChange }) {
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
 
+  const photos = lead.photos && lead.photos.length > 0
+    ? lead.photos
+    : lead.image_url
+    ? [lead.image_url]
+    : []
+
   const getDaysAgo = (dateStr) => {
     if (!dateStr) return null
     const diff = Math.floor((new Date() - new Date(dateStr)) / (1000 * 60 * 60 * 24))
@@ -226,7 +233,27 @@ function LeadCard({ lead, onStatusChange }) {
         </div>
       )}
 
-      {lead.image_url && <img src={lead.image_url} alt={lead.title} style={styles.cardImage} />}
+      {/* Photo Carousel */}
+      {photos.length > 0 && (
+        <div style={{ position: 'relative' }}>
+          <img src={photos[photoIndex]} alt={lead.title} style={styles.cardImage} />
+          {photos.length > 1 && (
+            <>
+              <button
+                onClick={() => setPhotoIndex(i => Math.max(0, i - 1))}
+                style={{ ...styles.photoBtn, left: '8px', opacity: photoIndex === 0 ? 0.3 : 1 }}
+                disabled={photoIndex === 0}
+              >‹</button>
+              <button
+                onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))}
+                style={{ ...styles.photoBtn, right: '8px', opacity: photoIndex === photos.length - 1 ? 0.3 : 1 }}
+                disabled={photoIndex === photos.length - 1}
+              >›</button>
+              <div style={styles.photoCounter}>{photoIndex + 1} / {photos.length}</div>
+            </>
+          )}
+        </div>
+      )}
 
       <div style={styles.cardBody}>
         <h3 style={styles.cardTitle}>{lead.title}</h3>
@@ -249,10 +276,7 @@ function LeadCard({ lead, onStatusChange }) {
         {/* Collapsible Description */}
         {lead.description && (
           <div>
-            <button
-              onClick={() => setShowDescription(!showDescription)}
-              style={styles.descriptionToggle}
-            >
+            <button onClick={() => setShowDescription(!showDescription)} style={styles.descriptionToggle}>
               {showDescription ? '▲ Hide Description' : '▼ View Description'}
             </button>
             {showDescription && (
@@ -423,7 +447,6 @@ function Dashboard({ user }) {
         </div>
 
         <div style={styles.filtersRight}>
-          {/* Sort */}
           <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Sort: Newest Found</option>
             <option value="oldest_found">Sort: Oldest Found</option>
@@ -434,7 +457,6 @@ function Dashboard({ user }) {
             <option value="most_discounted">Sort: Most Discounted</option>
           </select>
 
-          {/* Platform */}
           <select style={styles.filterSelect} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
@@ -442,15 +464,11 @@ function Dashboard({ user }) {
             <option value="offerup">OfferUp</option>
           </select>
 
-          {/* Price */}
           <input style={styles.filterInput} type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
           <input style={styles.filterInput} type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
-
-          {/* Year */}
           <input style={styles.filterInput} type="number" placeholder="Min year" value={minYear} onChange={e => setMinYear(e.target.value)} />
           <input style={styles.filterInput} type="number" placeholder="Max year" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
 
-          {/* Days on market */}
           <select style={styles.filterSelect} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
             <option value="">Any age</option>
             <option value="1">Today</option>
@@ -580,6 +598,8 @@ const styles = {
   alertPill: { background: '#7f1d1d', color: '#fca5a5', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' },
   pricePill: { background: '#1e3a5f', color: '#93c5fd', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' },
   cardImage: { width: '100%', height: '200px', objectFit: 'cover' },
+  photoBtn: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', fontSize: '24px', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  photoCounter: { position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '10px' },
   cardBody: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' },
   cardTitle: { color: '#ffffff', fontSize: '15px', margin: 0, fontWeight: '600' },
   cardRow: { display: 'flex', alignItems: 'center', gap: '8px' },
