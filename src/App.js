@@ -11,7 +11,7 @@ function LandingPage() {
   return (
     <div style={styles.landing}>
       <div style={styles.nav}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '48px', objectFit: 'contain' }} />
+        <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '48px', objectFit: 'contain' }} />
         <button style={styles.navButton} onClick={() => navigate('/login')}>Sign In</button>
       </div>
 
@@ -86,7 +86,7 @@ function LandingPage() {
       </div>
 
       <div style={styles.footer}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
+        <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
         <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
       </div>
     </div>
@@ -114,7 +114,7 @@ function LoginPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
+        <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Sign In</h2>
         <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
         <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
@@ -149,7 +149,7 @@ function SignupPage() {
     return (
       <div style={styles.authContainer}>
         <div style={styles.authBox}>
-          <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
+          <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
           <h2 style={styles.authTitle}>You're on the list</h2>
           <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>We'll review your request and get you access shortly. Keep an eye on your inbox.</p>
           <button style={styles.button} onClick={() => navigate('/')}>Back to Home</button>
@@ -161,7 +161,7 @@ function SignupPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
+        <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Get Early Access</h2>
         <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>We're currently onboarding brokers by market. Submit your info and we'll be in touch.</p>
         <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignup()} />
@@ -427,7 +427,7 @@ function Dashboard({ user }) {
   return (
     <div style={styles.dashboard}>
       <div style={styles.header}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
+        <img src="/yachtwatch-logo_png.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
         <div style={styles.headerRight}>
           <span style={styles.userEmail}>{user.email}</span>
           <button style={styles.logoutButton} onClick={handleLogout}>Sign Out</button>
