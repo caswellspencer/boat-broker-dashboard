@@ -26,7 +26,7 @@ function LandingPage() {
           <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
           <h1 style={styles.heroTitle}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
           <p style={styles.heroSubtitle}>
-            We scrape Facebook Marketplace, Craigslist, and OfferUp for private boat sellers showing signs of urgency — moving out of state, financial pressure, must sell fast. Surface those leads to your desk twice a day.
+            The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.
           </p>
           <div style={styles.heroButtons}>
             <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
@@ -41,17 +41,17 @@ function LandingPage() {
           <div style={styles.step}>
             <div style={styles.stepNumber}>01</div>
             <h3 style={styles.stepTitle}>We Scrape</h3>
-            <p style={styles.stepText}>Every morning and afternoon we scan Facebook Marketplace, Craigslist, and OfferUp for boats listed over $50k in your market.</p>
+            <p style={styles.stepText}>We scan Facebook Marketplace, Craigslist, and OfferUp every morning and afternoon for private sellers listing boats over $50k in your market.</p>
           </div>
           <div style={styles.step}>
             <div style={styles.stepNumber}>02</div>
             <h3 style={styles.stepTitle}>We Filter</h3>
-            <p style={styles.stepText}>Our system flags listings with motivated seller language — moving, must sell, financial, repo, estate sale — and pricing below market average.</p>
+            <p style={styles.stepText}>We read every description looking for the signals you already know — moving out of state, health reasons, behind on slip fees, repo, estate sales. The listings that hit your dashboard are the ones worth calling.</p>
           </div>
           <div style={styles.step}>
             <div style={styles.stepNumber}>03</div>
             <h3 style={styles.stepTitle}>You Close</h3>
-            <p style={styles.stepText}>You get an email alert the moment a lead hits. Log in to your dashboard, review the details, and reach out before the competition.</p>
+            <p style={styles.stepText}>You get an email the moment a lead comes in. Open the dashboard, read the description, and reach out before anyone else knows it exists.</p>
           </div>
         </div>
       </div>
