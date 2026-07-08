@@ -1,18 +1,7 @@
 {
   "short_name": "YachtWatch",
   "name": "YachtWatch",
-  "icons": [
-    {
-      "src": "favicon_png.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/png"
-    },
-    {
-      "src": "yachtwatch-logo_png.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ],
+  "icons": [],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#0a0a0a",
