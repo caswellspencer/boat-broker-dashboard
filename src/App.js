@@ -561,7 +561,7 @@ export default function App() {
 // STYLES
 // ---------------------------------------------------------------------------
 const styles = {
-  landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: 'sans-serif' },
+  landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
   nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
   navButton: { background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px', color: '#fff', padding: '8px 20px', cursor: 'pointer', fontSize: '13px' },
   hero: { display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
