@@ -11,11 +11,17 @@ function LandingPage() {
   return (
     <div style={styles.landing}>
       <div style={styles.nav}>
-        <span style={styles.navLogo}>🚤 YachtWatch</span>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '48px', objectFit: 'contain' }} />
         <button style={styles.navButton} onClick={() => navigate('/login')}>Sign In</button>
       </div>
 
-      <div style={styles.hero}>
+      <div style={{
+        ...styles.hero,
+        backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(10,10,10,1)), url(/hero-yacht.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: '160px 60px',
+      }}>
         <div style={styles.heroContent}>
           <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
           <h1 style={styles.heroTitle}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
@@ -80,6 +86,7 @@ function LandingPage() {
       </div>
 
       <div style={styles.footer}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
         <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
       </div>
     </div>
@@ -107,7 +114,7 @@ function LoginPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 YachtWatch</div>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Sign In</h2>
         <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
         <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
@@ -142,7 +149,7 @@ function SignupPage() {
     return (
       <div style={styles.authContainer}>
         <div style={styles.authBox}>
-          <div style={styles.authLogo}>🚤 YachtWatch</div>
+          <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
           <h2 style={styles.authTitle}>You're on the list</h2>
           <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>We'll review your request and get you access shortly. Keep an eye on your inbox.</p>
           <button style={styles.button} onClick={() => navigate('/')}>Back to Home</button>
@@ -154,7 +161,7 @@ function SignupPage() {
   return (
     <div style={styles.authContainer}>
       <div style={styles.authBox}>
-        <div style={styles.authLogo} onClick={() => navigate('/')}>🚤 YachtWatch</div>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Get Early Access</h2>
         <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>We're currently onboarding brokers by market. Submit your info and we'll be in touch.</p>
         <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignup()} />
@@ -420,7 +427,7 @@ function Dashboard({ user }) {
   return (
     <div style={styles.dashboard}>
       <div style={styles.header}>
-        <h1 style={styles.headerTitle}>🚤 YachtWatch</h1>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
         <div style={styles.headerRight}>
           <span style={styles.userEmail}>{user.email}</span>
           <button style={styles.logoutButton} onClick={handleLogout}>Sign Out</button>
@@ -555,17 +562,16 @@ export default function App() {
 // ---------------------------------------------------------------------------
 const styles = {
   landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: 'sans-serif' },
-  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a' },
-  navLogo: { fontSize: '18px', fontWeight: '700', color: '#ffffff' },
-  navButton: { background: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#888', padding: '8px 20px', cursor: 'pointer', fontSize: '13px' },
-  hero: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '100px 60px', textAlign: 'center' },
-  heroContent: { maxWidth: '720px' },
-  heroBadge: { display: 'inline-block', background: '#1a1a1a', border: '1px solid #2563eb', color: '#2563eb', fontSize: '12px', fontWeight: '600', padding: '4px 14px', borderRadius: '20px', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
+  navButton: { background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px', color: '#fff', padding: '8px 20px', cursor: 'pointer', fontSize: '13px' },
+  hero: { display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  heroContent: { maxWidth: '720px', position: 'relative', zIndex: 1 },
+  heroBadge: { display: 'inline-block', background: 'rgba(37,99,235,0.2)', border: '1px solid #2563eb', color: '#60a5fa', fontSize: '12px', fontWeight: '600', padding: '4px 14px', borderRadius: '20px', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.08em' },
   heroTitle: { fontSize: '52px', fontWeight: '800', lineHeight: '1.1', margin: '0 0 24px 0', color: '#ffffff' },
-  heroSubtitle: { fontSize: '18px', color: '#888', lineHeight: '1.7', margin: '0 0 40px 0' },
+  heroSubtitle: { fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', margin: '0 0 40px 0' },
   heroButtons: { display: 'flex', gap: '16px', justifyContent: 'center' },
   heroCta: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 32px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' },
-  heroSecondary: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '14px 32px', fontSize: '16px', cursor: 'pointer' },
+  heroSecondary: { background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '14px 32px', fontSize: '16px', cursor: 'pointer' },
   section: { padding: '80px 60px', borderTop: '1px solid #1a1a1a' },
   sectionTitle: { fontSize: '32px', fontWeight: '700', textAlign: 'center', margin: '0 0 60px 0' },
   steps: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px', maxWidth: '900px', margin: '0 auto' },
@@ -581,11 +587,10 @@ const styles = {
   ctaSection: { textAlign: 'center', padding: '100px 60px', borderTop: '1px solid #1a1a1a' },
   ctaTitle: { fontSize: '40px', fontWeight: '800', margin: '0 0 16px 0' },
   ctaSubtitle: { fontSize: '16px', color: '#888', margin: '0 0 40px 0' },
-  footer: { padding: '32px 60px', borderTop: '1px solid #1a1a1a', textAlign: 'center' },
+  footer: { padding: '32px 60px', borderTop: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   footerText: { color: '#555', fontSize: '13px', margin: 0 },
   authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   authBox: { background: '#1a1a1a', padding: '40px', borderRadius: '12px', width: '360px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #2a2a2a' },
-  authLogo: { fontSize: '18px', fontWeight: '700', color: '#ffffff', textAlign: 'center', cursor: 'pointer' },
   authTitle: { color: '#ffffff', fontSize: '22px', margin: 0, textAlign: 'center' },
   authSwitch: { color: '#888', fontSize: '13px', textAlign: 'center', margin: 0 },
   authLink: { color: '#2563eb', cursor: 'pointer' },
@@ -594,7 +599,6 @@ const styles = {
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
   dashboard: { minHeight: '100vh', background: '#0a0a0a', color: '#ffffff' },
   header: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a' },
-  headerTitle: { color: '#ffffff', fontSize: '20px', margin: 0 },
   headerRight: { display: 'flex', alignItems: 'center', gap: '16px' },
   userEmail: { color: '#888', fontSize: '14px' },
   logoutButton: { background: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#888', padding: '6px 12px', cursor: 'pointer', fontSize: '13px' },
