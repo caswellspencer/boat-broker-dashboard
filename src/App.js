@@ -2,19 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
-// ---------------------------------------------------------------------------
-// LANDING PAGE
-// ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
-
   return (
     <div style={styles.landing}>
       <div style={styles.nav}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '48px', objectFit: 'contain' }} />
         <button style={styles.navButton} onClick={() => navigate('/login')}>Sign In</button>
       </div>
-
       <div style={{
         ...styles.hero,
         backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(10,10,10,1)), url(/hero-yacht.png)',
@@ -25,9 +20,7 @@ function LandingPage() {
         <div style={styles.heroContent}>
           <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
           <h1 style={styles.heroTitle}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
-          <p style={styles.heroSubtitle}>
-            The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.
-          </p>
+          <p style={styles.heroSubtitle}>The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.</p>
           <div style={styles.heroButtons}>
             <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
             <button style={styles.heroSecondary} onClick={() => navigate('/login')}>Sign In</button>
@@ -93,9 +86,6 @@ function LandingPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// LOGIN
-// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -126,9 +116,6 @@ function LoginPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// SIGNUP
-// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -150,26 +137,18 @@ function SignupPage() {
       setError('Please fill in all fields')
       return
     }
-
     setLoading(true)
     setError('')
-
     const { error: signupError } = await supabase.auth.signUp({ email, password })
-
     if (signupError) {
       setError(signupError.message)
       setLoading(false)
       return
     }
-
     const city = cities.find(c => c.id === selectedCity)
     if (city) {
-      await createBrokerSubscription(
-        { full_name: `${firstName} ${lastName}`, email },
-        city
-      )
+      await createBrokerSubscription({ full_name: `${firstName} ${lastName}`, email }, city)
     }
-
     setSuccess(true)
     setLoading(false)
   }
@@ -180,9 +159,7 @@ function SignupPage() {
         <div style={styles.authBox}>
           <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
           <h2 style={styles.authTitle}>You're all set 🚤</h2>
-          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>
-            Your account is created and your market is configured. Log in to see your leads.
-          </p>
+          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created and your market is configured. Log in to see your leads.</p>
           <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
         </div>
       </div>
@@ -194,44 +171,27 @@ function SignupPage() {
       <div style={styles.authBox}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Get Early Access</h2>
-        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
-          Select your market and we'll start surfacing leads immediately.
-        </p>
-
+        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>Select your market and we'll start surfacing leads immediately.</p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} />
           <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} />
         </div>
-
         <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
         <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-
-        <select
-          style={{ ...styles.input, cursor: 'pointer' }}
-          value={selectedCity}
-          onChange={e => setSelectedCity(e.target.value)}
-        >
+        <select style={{ ...styles.input, cursor: 'pointer' }} value={selectedCity} onChange={e => setSelectedCity(e.target.value)}>
           <option value="">Select your market</option>
           {cities.map(city => (
-            <option key={city.id} value={city.id}>
-              {city.city_label}, {city.state}
-            </option>
+            <option key={city.id} value={city.id}>{city.city_label}, {city.state}</option>
           ))}
         </select>
-
         {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} onClick={handleSignup} disabled={loading}>
-          {loading ? 'Creating account...' : 'Request Access'}
-        </button>
+        <button style={styles.button} onClick={handleSignup} disabled={loading}>{loading ? 'Creating account...' : 'Request Access'}</button>
         <p style={styles.authSwitch}>Already have an account?{' '}<span style={styles.authLink} onClick={() => navigate('/login')}>Sign in</span></p>
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// LEAD CARD
-// ---------------------------------------------------------------------------
 function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   const [status, setStatus] = useState(action?.status || 'new')
   const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
@@ -260,34 +220,17 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
     setEditingNotes(false)
   }
 
-  const statusColors = {
-    new: '#2563eb',
-    reached_out: '#16a34a',
-    not_interested: '#dc2626',
-    follow_up: '#d97706',
-    connected: '#7c3aed',
-  }
-
-  const statusLabels = {
-    new: 'New',
-    reached_out: 'Reached Out',
-    not_interested: 'Not Interested',
-    follow_up: 'Follow Up',
-    connected: 'Connected',
-  }
-
+  const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
+  const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
   const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
+
   const platform = lead.platform || 'facebook'
   const platformColor = platformColors[platform] || '#1d4ed8'
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
 
-  const photos = lead.photos && lead.photos.length > 0
-    ? lead.photos
-    : lead.image_url
-    ? [lead.image_url]
-    : []
+  const photos = lead.photos && lead.photos.length > 0 ? lead.photos : lead.image_url ? [lead.image_url] : []
 
   const getDaysAgo = (dateStr) => {
     if (!dateStr) return null
@@ -300,14 +243,12 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   return (
     <div style={{ ...styles.card, borderTop: `3px solid ${statusColors[status] || '#2563eb'}` }}>
       <div style={{ ...styles.platformBanner, background: platformColor }}>{platformLabel}</div>
-
       {(hasKeywords || hasPriceSignal) && (
         <div style={styles.alertBanner}>
           {hasKeywords && <span style={styles.alertPill}>🚨 {lead.matched_keywords.join(' · ')}</span>}
           {hasPriceSignal && <span style={styles.pricePill}>📉 {lead.discount_percent}% below avg</span>}
         </div>
       )}
-
       {photos.length > 0 && (
         <div style={{ position: 'relative' }}>
           <img src={photos[photoIndex]} alt={lead.title} style={styles.cardImage} />
@@ -320,13 +261,11 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
           )}
         </div>
       )}
-
       <div style={styles.cardBody}>
         <h3 style={styles.cardTitle}>{lead.title}</h3>
         <div style={styles.cardRow}>
           <span style={styles.price}>${lead.price?.toLocaleString()}</span>
         </div>
-
         <div style={styles.checklist}>
           <CheckItem label="Year" value={lead.boat_year} />
           <CheckItem label="Make" value={lead.boat_make} />
@@ -334,11 +273,9 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
           <CheckItem label="Engine Hours" value={lead.engine_hours} />
           <CheckItem label="Trailer" value={lead.has_trailer} />
         </div>
-
         {lead.location && <p style={styles.cardMeta}>📍 {lead.location}</p>}
         {lead.listing_date && <p style={styles.cardMeta}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>}
         <p style={styles.cardMeta}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
-
         {lead.description && (
           <div>
             <button onClick={() => setShowDescription(!showDescription)} style={styles.descriptionToggle}>
@@ -351,9 +288,7 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
             )}
           </div>
         )}
-
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>View Listing →</a>
-
         <div style={styles.notesSection}>
           {editingNotes ? (
             <>
@@ -369,7 +304,6 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
             </div>
           )}
         </div>
-
         <div style={styles.statusRow}>
           {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
             <button
@@ -381,14 +315,12 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
             </button>
           ))}
         </div>
-
         {showFollowUp && (
           <div style={styles.followUpRow}>
             <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={styles.dateInput} />
             <button onClick={handleFollowUp} style={styles.saveBtn}>Save</button>
           </div>
         )}
-
         {followUpDate && status === 'follow_up' && (
           <p style={{ ...styles.cardMeta, color: '#d97706' }}>📅 Follow up: {new Date(followUpDate).toLocaleDateString()}</p>
         )}
@@ -407,9 +339,6 @@ function CheckItem({ label, value }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// DASHBOARD
-// ---------------------------------------------------------------------------
 function Dashboard({ user }) {
   const [leads, setLeads] = useState([])
   const [actions, setActions] = useState({})
@@ -422,6 +351,7 @@ function Dashboard({ user }) {
   const [maxYear, setMaxYear] = useState('')
   const [maxDaysAgo, setMaxDaysAgo] = useState('')
   const [sortBy, setSortBy] = useState('newest_found')
+  const [search, setSearch] = useState('')
 
   const brokerEmail = user.email
 
@@ -430,7 +360,6 @@ function Dashboard({ user }) {
       .from('posted_broker_leads')
       .select('*')
       .order('posted_at', { ascending: false })
-
     if (!error && data) {
       setLeads(data)
       const listingIds = data.map(l => l.listing_id)
@@ -448,18 +377,10 @@ function Dashboard({ user }) {
     window.location.href = '/'
   }
 
-  const getStatus = (lead) => {
-    const action = actions[lead.listing_id]
-    return action?.status || 'new'
-  }
+  const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
 
   const tabs = ['new', 'contacted', 'connected', 'not_interested']
-  const tabLabels = {
-    new: 'New Leads',
-    contacted: 'Contacted',
-    connected: 'Connected',
-    not_interested: 'Not Interested',
-  }
+  const tabLabels = { new: 'New Leads', contacted: 'Contacted', connected: 'Connected', not_interested: 'Not Interested' }
 
   const filteredLeads = leads
     .filter(lead => {
@@ -476,6 +397,11 @@ function Dashboard({ user }) {
       if (maxDaysAgo && lead.listing_date) {
         const days = Math.floor((new Date() - new Date(lead.listing_date)) / (1000 * 60 * 60 * 24))
         if (days > parseInt(maxDaysAgo)) return false
+      }
+      if (search) {
+        const s = search.toLowerCase()
+        const match = lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s) || lead.boat_model?.toLowerCase().includes(s) || lead.boat_year?.toLowerCase().includes(s)
+        if (!match) return false
       }
       return true
     })
@@ -498,6 +424,13 @@ function Dashboard({ user }) {
     <div style={styles.dashboard}>
       <div style={styles.header}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
+        <input
+          style={{ ...styles.filterInput, width: '280px' }}
+          type="text"
+          placeholder="🔍 Search listings..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
         <div style={styles.headerRight}>
           <span style={styles.userEmail}>{user.email}</span>
           <button style={styles.logoutButton} onClick={handleLogout}>Sign Out</button>
@@ -539,7 +472,6 @@ function Dashboard({ user }) {
             </button>
           ))}
         </div>
-
         <div style={styles.filtersRight}>
           <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Sort: Newest Found</option>
@@ -550,19 +482,16 @@ function Dashboard({ user }) {
             <option value="oldest_listed">Sort: Oldest Listed</option>
             <option value="most_discounted">Sort: Most Discounted</option>
           </select>
-
           <select style={styles.filterSelect} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
             <option value="craigslist">Craigslist</option>
             <option value="offerup">OfferUp</option>
           </select>
-
           <input style={styles.filterInput} type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
           <input style={styles.filterInput} type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
           <input style={styles.filterInput} type="number" placeholder="Min year" value={minYear} onChange={e => setMinYear(e.target.value)} />
           <input style={styles.filterInput} type="number" placeholder="Max year" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
-
           <select style={styles.filterSelect} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
             <option value="">Any age</option>
             <option value="1">Today</option>
@@ -595,9 +524,6 @@ function Dashboard({ user }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// APP
-// ---------------------------------------------------------------------------
 function AppContent() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -633,9 +559,6 @@ export default function App() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// STYLES
-// ---------------------------------------------------------------------------
 const styles = {
   landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
   nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
@@ -674,7 +597,7 @@ const styles = {
   button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
   dashboard: { minHeight: '100vh', background: '#0a0a0a', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
-  header: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a' },
+  header: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '16px' },
   headerRight: { display: 'flex', alignItems: 'center', gap: '16px' },
   userEmail: { color: '#888', fontSize: '14px' },
   logoutButton: { background: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#888', padding: '6px 12px', cursor: 'pointer', fontSize: '13px' },
