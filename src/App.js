@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import { supabase } from './supabaseClient'
+import { supabase, getSupportedCities, createBrokerSubscription } from './supabaseClient'
 
 // ---------------------------------------------------------------------------
 // LANDING PAGE
@@ -59,29 +59,29 @@ function LandingPage() {
       <div style={styles.valueSection}>
         <div style={styles.valueCard}>
           <div style={styles.valueIcon}>📍</div>
-          <h3 style={styles.valueTitle}>Facebook + Craigslist + OfferUp</h3>
-          <p style={styles.valueText}>Three platforms, one dashboard. Each source is color coded so you always know where a lead came from.</p>
+          <h3 style={styles.valueTitle}>Three Platforms</h3>
+          <p style={styles.valueText}>Facebook has the volume. Craigslist has the hidden gems. OfferUp catches what the others miss. All three in one place, color coded by source.</p>
         </div>
         <div style={styles.valueCard}>
           <div style={styles.valueIcon}>🚨</div>
           <h3 style={styles.valueTitle}>Motivated Seller Detection</h3>
-          <p style={styles.valueText}>We read every listing description and flag the signals brokers care about — urgency, price cuts, life events.</p>
+          <p style={styles.valueText}>We're not just looking for boats for sale. We're looking for owners who need to sell — and there's a difference.</p>
         </div>
         <div style={styles.valueCard}>
           <div style={styles.valueIcon}>📧</div>
           <h3 style={styles.valueTitle}>Instant Email Alerts</h3>
-          <p style={styles.valueText}>Get notified the moment a new lead hits your market. No need to check the dashboard — we come to you.</p>
+          <p style={styles.valueText}>The broker who calls first wins the listing. We make sure that broker is you.</p>
         </div>
         <div style={styles.valueCard}>
           <div style={styles.valueIcon}>📋</div>
           <h3 style={styles.valueTitle}>Built-in CRM</h3>
-          <p style={styles.valueText}>Track outreach, set follow up reminders, and add notes — all inside your lead dashboard.</p>
+          <p style={styles.valueText}>Track every conversation, set follow up reminders, and add notes on each seller. Your entire cold outreach pipeline in one dashboard.</p>
         </div>
       </div>
 
       <div style={styles.ctaSection}>
-        <h2 style={styles.ctaTitle}>Ready to Find Your Next Listing?</h2>
-        <p style={styles.ctaSubtitle}>Join yacht brokers already using motivated seller intelligence to grow their book of business.</p>
+        <h2 style={styles.ctaTitle}>Built by brokers, for brokers.</h2>
+        <p style={styles.ctaSubtitle}>Stop scrolling Marketplace manually. Let the leads come to you.</p>
         <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
       </div>
 
@@ -130,18 +130,47 @@ function LoginPage() {
 // SIGNUP
 // ---------------------------------------------------------------------------
 function SignupPage() {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [cities, setCities] = useState([])
+  const [selectedCity, setSelectedCity] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    getSupportedCities().then(data => setCities(data))
+  }, [])
+
   const handleSignup = async () => {
+    if (!firstName || !lastName || !email || !password || !selectedCity) {
+      setError('Please fill in all fields')
+      return
+    }
+
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) { setError(error.message) } else { setSuccess(true) }
+
+    const { error: signupError } = await supabase.auth.signUp({ email, password })
+
+    if (signupError) {
+      setError(signupError.message)
+      setLoading(false)
+      return
+    }
+
+    const city = cities.find(c => c.id === selectedCity)
+    if (city) {
+      await createBrokerSubscription(
+        { full_name: `${firstName} ${lastName}`, email },
+        city
+      )
+    }
+
+    setSuccess(true)
     setLoading(false)
   }
 
@@ -150,9 +179,11 @@ function SignupPage() {
       <div style={styles.authContainer}>
         <div style={styles.authBox}>
           <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
-          <h2 style={styles.authTitle}>You're on the list</h2>
-          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>We'll review your request and get you access shortly. Keep an eye on your inbox.</p>
-          <button style={styles.button} onClick={() => navigate('/')}>Back to Home</button>
+          <h2 style={styles.authTitle}>You're all set 🚤</h2>
+          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>
+            Your account is created and your market is configured. Log in to see your leads.
+          </p>
+          <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
         </div>
       </div>
     )
@@ -163,11 +194,35 @@ function SignupPage() {
       <div style={styles.authBox}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
         <h2 style={styles.authTitle}>Get Early Access</h2>
-        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '16px' }}>We're currently onboarding brokers by market. Submit your info and we'll be in touch.</p>
-        <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignup()} />
-        <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSignup()} />
+        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>
+          Select your market and we'll start surfacing leads immediately.
+        </p>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+          <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} />
+        </div>
+
+        <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+        <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+
+        <select
+          style={{ ...styles.input, cursor: 'pointer' }}
+          value={selectedCity}
+          onChange={e => setSelectedCity(e.target.value)}
+        >
+          <option value="">Select your market</option>
+          {cities.map(city => (
+            <option key={city.id} value={city.id}>
+              {city.city_label}, {city.state}
+            </option>
+          ))}
+        </select>
+
         {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} onClick={handleSignup} disabled={loading}>{loading ? 'Submitting...' : 'Request Access'}</button>
+        <button style={styles.button} onClick={handleSignup} disabled={loading}>
+          {loading ? 'Creating account...' : 'Request Access'}
+        </button>
         <p style={styles.authSwitch}>Already have an account?{' '}<span style={styles.authLink} onClick={() => navigate('/login')}>Sign in</span></p>
       </div>
     </div>
@@ -222,7 +277,6 @@ function LeadCard({ lead, onStatusChange }) {
   }
 
   const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
-
   const platform = lead.platform || 'facebook'
   const platformColor = platformColors[platform] || '#1d4ed8'
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
@@ -589,15 +643,15 @@ const styles = {
   ctaSubtitle: { fontSize: '16px', color: '#888', margin: '0 0 40px 0' },
   footer: { padding: '32px 60px', borderTop: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   footerText: { color: '#555', fontSize: '13px', margin: 0 },
-  authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  authBox: { background: '#1a1a1a', padding: '40px', borderRadius: '12px', width: '360px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #2a2a2a' },
+  authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" },
+  authBox: { background: '#1a1a1a', padding: '40px', borderRadius: '12px', width: '380px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #2a2a2a' },
   authTitle: { color: '#ffffff', fontSize: '22px', margin: 0, textAlign: 'center' },
   authSwitch: { color: '#888', fontSize: '13px', textAlign: 'center', margin: 0 },
   authLink: { color: '#2563eb', cursor: 'pointer' },
-  input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 16px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box' },
-  button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600' },
+  input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 16px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
+  button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
-  dashboard: { minHeight: '100vh', background: '#0a0a0a', color: '#ffffff' },
+  dashboard: { minHeight: '100vh', background: '#0a0a0a', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
   header: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a' },
   headerRight: { display: 'flex', alignItems: 'center', gap: '16px' },
   userEmail: { color: '#888', fontSize: '14px' },
@@ -608,9 +662,9 @@ const styles = {
   statLabel: { fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
   filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', gap: '16px', flexWrap: 'wrap' },
   tabs: { display: 'flex', gap: '8px' },
-  tab: { border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' },
+  tab: { border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   filtersRight: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' },
-  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 12px', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer' },
+  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 12px', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
   filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 12px', color: '#ffffff', fontSize: '13px', width: '100px', outline: 'none' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', padding: '32px' },
   card: { background: '#1a1a1a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column' },
