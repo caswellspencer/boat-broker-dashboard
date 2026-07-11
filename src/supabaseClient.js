@@ -50,7 +50,8 @@ export const getBrokerActions = async (brokerEmail, listingIds) => {
 }
 
 export const upsertBrokerAction = async (brokerEmail, listingId, updates) => {
-  const { error } = await supabase
+  console.log('upsertBrokerAction called:', brokerEmail, listingId, updates)
+  const { data, error } = await supabase
     .from('broker_lead_actions')
     .upsert({
       broker_email: brokerEmail,
@@ -58,5 +59,6 @@ export const upsertBrokerAction = async (brokerEmail, listingId, updates) => {
       ...updates,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'broker_email,listing_id' })
+  console.log('upsert result:', data, error)
   return !error
 }
