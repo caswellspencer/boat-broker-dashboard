@@ -34,3 +34,29 @@ export const createBrokerSubscription = async (user, city) => {
     })
   return !error
 }
+
+export const getBrokerActions = async (brokerEmail, listingIds) => {
+  if (!listingIds || listingIds.length === 0) return {}
+  const { data } = await supabase
+    .from('broker_lead_actions')
+    .select('*')
+    .eq('broker_email', brokerEmail)
+    .in('listing_id', listingIds)
+  const map = {}
+  for (const row of data || []) {
+    map[row.listing_id] = row
+  }
+  return map
+}
+
+export const upsertBrokerAction = async (brokerEmail, listingId, updates) => {
+  const { error } = await supabase
+    .from('broker_lead_actions')
+    .upsert({
+      broker_email: brokerEmail,
+      listing_id: listingId,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'broker_email,listing_id' })
+  return !error
+}

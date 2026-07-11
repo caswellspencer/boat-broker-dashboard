@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
-import { supabase, getSupportedCities, createBrokerSubscription } from './supabaseClient'
+import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
 // ---------------------------------------------------------------------------
 // LANDING PAGE
@@ -232,11 +232,11 @@ function SignupPage() {
 // ---------------------------------------------------------------------------
 // LEAD CARD
 // ---------------------------------------------------------------------------
-function LeadCard({ lead, onStatusChange }) {
-  const [status, setStatus] = useState(lead.status || 'new')
-  const [followUpDate, setFollowUpDate] = useState(lead.follow_up_date || '')
+function LeadCard({ lead, brokerEmail, action, onActionChange }) {
+  const [status, setStatus] = useState(action?.status || 'new')
+  const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
   const [showFollowUp, setShowFollowUp] = useState(false)
-  const [notes, setNotes] = useState(lead.notes || '')
+  const [notes, setNotes] = useState(action?.notes || '')
   const [editingNotes, setEditingNotes] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
   const [showDescription, setShowDescription] = useState(false)
@@ -244,18 +244,18 @@ function LeadCard({ lead, onStatusChange }) {
 
   const handleStatus = async (newStatus) => {
     setStatus(newStatus)
-    await supabase.from('posted_broker_leads').update({ status: newStatus }).eq('id', lead.id)
-    if (onStatusChange) onStatusChange()
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus })
+    if (onActionChange) onActionChange()
   }
 
   const handleFollowUp = async () => {
-    await supabase.from('posted_broker_leads').update({ follow_up_date: followUpDate }).eq('id', lead.id)
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate })
     setShowFollowUp(false)
   }
 
   const handleSaveNotes = async () => {
     setSavingNotes(true)
-    await supabase.from('posted_broker_leads').update({ notes }).eq('id', lead.id)
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { notes })
     setSavingNotes(false)
     setEditingNotes(false)
   }
@@ -389,8 +389,8 @@ function LeadCard({ lead, onStatusChange }) {
           </div>
         )}
 
-        {lead.follow_up_date && status === 'follow_up' && (
-          <p style={{ ...styles.cardMeta, color: '#d97706' }}>📅 Follow up: {new Date(lead.follow_up_date).toLocaleDateString()}</p>
+        {followUpDate && status === 'follow_up' && (
+          <p style={{ ...styles.cardMeta, color: '#d97706' }}>📅 Follow up: {new Date(followUpDate).toLocaleDateString()}</p>
         )}
       </div>
     </div>
@@ -412,6 +412,7 @@ function CheckItem({ label, value }) {
 // ---------------------------------------------------------------------------
 function Dashboard({ user }) {
   const [leads, setLeads] = useState([])
+  const [actions, setActions] = useState({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('new')
   const [minPrice, setMinPrice] = useState('')
@@ -422,12 +423,20 @@ function Dashboard({ user }) {
   const [maxDaysAgo, setMaxDaysAgo] = useState('')
   const [sortBy, setSortBy] = useState('newest_found')
 
+  const brokerEmail = user.email
+
   const fetchLeads = async () => {
     const { data, error } = await supabase
       .from('posted_broker_leads')
       .select('*')
       .order('posted_at', { ascending: false })
-    if (!error) setLeads(data)
+
+    if (!error && data) {
+      setLeads(data)
+      const listingIds = data.map(l => l.listing_id)
+      const actionMap = await getBrokerActions(brokerEmail, listingIds)
+      setActions(actionMap)
+    }
     setLoading(false)
   }
 
@@ -436,6 +445,11 @@ function Dashboard({ user }) {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/'
+  }
+
+  const getStatus = (lead) => {
+    const action = actions[lead.listing_id]
+    return action?.status || 'new'
   }
 
   const tabs = ['new', 'contacted', 'connected', 'not_interested']
@@ -448,10 +462,11 @@ function Dashboard({ user }) {
 
   const filteredLeads = leads
     .filter(lead => {
-      if (activeTab === 'new' && lead.status !== 'new') return false
-      if (activeTab === 'contacted' && !['reached_out', 'follow_up'].includes(lead.status)) return false
-      if (activeTab === 'connected' && lead.status !== 'connected') return false
-      if (activeTab === 'not_interested' && lead.status !== 'not_interested') return false
+      const status = getStatus(lead)
+      if (activeTab === 'new' && status !== 'new') return false
+      if (activeTab === 'contacted' && !['reached_out', 'follow_up'].includes(status)) return false
+      if (activeTab === 'connected' && status !== 'connected') return false
+      if (activeTab === 'not_interested' && status !== 'not_interested') return false
       if (minPrice && lead.price < parseInt(minPrice)) return false
       if (maxPrice && lead.price > parseInt(maxPrice)) return false
       if (platformFilter !== 'all' && lead.platform !== platformFilter) return false
@@ -476,7 +491,7 @@ function Dashboard({ user }) {
       }
     })
 
-  const followUps = leads.filter(l => l.status === 'follow_up' && l.follow_up_date)
+  const countByStatus = (statuses) => leads.filter(l => statuses.includes(getStatus(l))).length
 
   return (
     <div style={styles.dashboard}>
@@ -490,23 +505,23 @@ function Dashboard({ user }) {
 
       <div style={styles.statsBar}>
         <div style={styles.stat}>
-          <span style={styles.statNumber}>{leads.filter(l => l.status === 'new').length}</span>
+          <span style={styles.statNumber}>{countByStatus(['new'])}</span>
           <span style={styles.statLabel}>New Leads</span>
         </div>
         <div style={styles.stat}>
-          <span style={styles.statNumber}>{leads.filter(l => l.status === 'reached_out').length}</span>
-          <span style={styles.statLabel}>Reached Out</span>
+          <span style={styles.statNumber}>{countByStatus(['reached_out', 'follow_up'])}</span>
+          <span style={styles.statLabel}>Contacted</span>
         </div>
         <div style={styles.stat}>
-          <span style={styles.statNumber}>{leads.filter(l => l.status === 'connected').length}</span>
+          <span style={styles.statNumber}>{countByStatus(['connected'])}</span>
           <span style={styles.statLabel}>Connected</span>
         </div>
         <div style={styles.stat}>
-          <span style={styles.statNumber}>{followUps.length}</span>
+          <span style={styles.statNumber}>{leads.filter(l => actions[l.listing_id]?.follow_up_date).length}</span>
           <span style={styles.statLabel}>Follow Ups</span>
         </div>
         <div style={styles.stat}>
-          <span style={styles.statNumber}>{leads.filter(l => l.status === 'not_interested').length}</span>
+          <span style={styles.statNumber}>{countByStatus(['not_interested'])}</span>
           <span style={styles.statLabel}>Not Interested</span>
         </div>
       </div>
@@ -565,7 +580,13 @@ function Dashboard({ user }) {
       ) : (
         <div style={styles.grid}>
           {filteredLeads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} onStatusChange={fetchLeads} />
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              brokerEmail={brokerEmail}
+              action={actions[lead.listing_id]}
+              onActionChange={fetchLeads}
+            />
           ))}
         </div>
       )}
