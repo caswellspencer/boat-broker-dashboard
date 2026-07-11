@@ -440,6 +440,7 @@ function Dashboard({ user }) {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchLeads() }, [])
 
   const handleLogout = async () => {
