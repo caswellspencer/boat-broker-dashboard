@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
+// ---------------------------------------------------------------------------
+// LANDING PAGE
+// ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
   return (
@@ -86,6 +89,9 @@ function LandingPage() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// LOGIN
+// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -116,6 +122,9 @@ function LoginPage() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// SIGNUP
+// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -192,6 +201,46 @@ function SignupPage() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// SIDEBAR
+// ---------------------------------------------------------------------------
+function Sidebar({ activePage, setActivePage, onLogout }) {
+  const navItems = [
+    { id: 'leads', label: 'Leads', icon: '🔍' },
+    { id: 'pipeline', label: 'Pipeline', icon: '📋' },
+    { id: 'analytics', label: 'Analytics', icon: '📊' },
+  ]
+
+  return (
+    <div style={styles.sidebar}>
+      <div style={styles.sidebarLogo}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
+      </div>
+      <nav style={styles.sidebarNav}>
+        {navItems.map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActivePage(item.id)}
+            style={{
+              ...styles.sidebarItem,
+              background: activePage === item.id ? '#1e3a5f' : 'transparent',
+              color: activePage === item.id ? '#60a5fa' : '#888',
+              borderLeft: activePage === item.id ? '3px solid #2563eb' : '3px solid transparent',
+            }}
+          >
+            <span style={{ fontSize: '16px' }}>{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <button style={styles.sidebarLogout} onClick={onLogout}>Sign Out</button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// LEAD CARD
+// ---------------------------------------------------------------------------
 function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   const [status, setStatus] = useState(action?.status || 'new')
   const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
@@ -229,7 +278,6 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
-
   const photos = lead.photos && lead.photos.length > 0 ? lead.photos : lead.image_url ? [lead.image_url] : []
 
   const getDaysAgo = (dateStr) => {
@@ -339,10 +387,172 @@ function CheckItem({ label, value }) {
   )
 }
 
-function Dashboard({ user }) {
-  const [leads, setLeads] = useState([])
-  const [actions, setActions] = useState({})
-  const [loading, setLoading] = useState(true)
+// ---------------------------------------------------------------------------
+// PIPELINE ROW
+// ---------------------------------------------------------------------------
+function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
+  const [status, setStatus] = useState(action?.status || 'new')
+  const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
+  const [showFollowUp, setShowFollowUp] = useState(false)
+  const [notes, setNotes] = useState(action?.notes || '')
+  const [editingNotes, setEditingNotes] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+
+  const handleStatus = async (newStatus) => {
+    setStatus(newStatus)
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus })
+    if (onActionChange) onActionChange()
+  }
+
+  const handleFollowUp = async () => {
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate })
+    setShowFollowUp(false)
+  }
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true)
+    await upsertBrokerAction(brokerEmail, lead.listing_id, { notes })
+    setSavingNotes(false)
+    setEditingNotes(false)
+  }
+
+  const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
+  const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
+  const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
+
+  const platform = lead.platform || 'facebook'
+  const platformColor = platformColors[platform] || '#1d4ed8'
+  const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
+  const photo = lead.photos?.[0] || lead.image_url
+
+  const getFollowUpColor = () => {
+    if (!followUpDate) return '#888'
+    const today = new Date().toISOString().split('T')[0]
+    if (followUpDate < today) return '#dc2626'
+    if (followUpDate === today) return '#d97706'
+    return '#16a34a'
+  }
+
+  return (
+    <>
+      <div
+        style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        {/* Photo */}
+        <div style={styles.pipelinePhoto}>
+          {photo ? (
+            <img src={photo} alt={lead.title} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+          ) : (
+            <div style={{ width: '60px', height: '60px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
+          )}
+        </div>
+
+        {/* Title & Location */}
+        <div style={{ flex: 2 }}>
+          <p style={{ color: '#fff', fontWeight: '600', fontSize: '14px', margin: '0 0 4px 0' }}>{lead.title}</p>
+          <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
+        </div>
+
+        {/* Price */}
+        <div style={{ flex: 1 }}>
+          <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
+          <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 6px', fontSize: '10px', color: '#fff', fontWeight: '700', marginTop: '4px' }}>{platformLabel}</div>
+        </div>
+
+        {/* Status */}
+        <div style={{ flex: 1 }}>
+          <span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: '700' }}>
+            {statusLabels[status]}
+          </span>
+        </div>
+
+        {/* Follow Up */}
+        <div style={{ flex: 1 }}>
+          {followUpDate ? (
+            <p style={{ color: getFollowUpColor(), fontSize: '12px', margin: 0, fontWeight: '600' }}>
+              📅 {new Date(followUpDate).toLocaleDateString()}
+            </p>
+          ) : (
+            <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>No follow up set</p>
+          )}
+        </div>
+
+        {/* Notes preview */}
+        <div style={{ flex: 2 }}>
+          <p style={{ color: '#888', fontSize: '12px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
+            {notes || '+ Add notes'}
+          </p>
+        </div>
+
+        {/* Expand arrow */}
+        <div style={{ color: '#555', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</div>
+      </div>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div style={styles.pipelineExpanded}>
+          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+
+            {/* Status buttons */}
+            <div>
+              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Status</p>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
+                  <button
+                    key={s}
+                    onClick={e => { e.stopPropagation(); handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
+                    style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}
+                  >
+                    {statusLabels[s]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Follow up date */}
+            <div>
+              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Follow Up Date</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={styles.dateInput} onClick={e => e.stopPropagation()} />
+                <button onClick={e => { e.stopPropagation(); handleFollowUp() }} style={styles.saveBtn}>Save</button>
+              </div>
+            </div>
+
+            {/* View listing */}
+            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link} onClick={e => e.stopPropagation()}>View Listing →</a>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div style={{ marginTop: '16px' }}>
+            <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Notes</p>
+            {editingNotes ? (
+              <div onClick={e => e.stopPropagation()}>
+                <textarea style={{ ...styles.notesInput, width: '100%' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                  <button onClick={e => { e.stopPropagation(); handleSaveNotes() }} style={styles.saveBtn} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
+                  <button onClick={e => { e.stopPropagation(); setEditingNotes(false) }} style={styles.cancelBtn}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div onClick={e => { e.stopPropagation(); setEditingNotes(true) }} style={{ ...styles.notesDisplay, width: '100%' }}>
+                {notes ? <p style={styles.notesText}>📝 {notes}</p> : <p style={styles.notesPlaceholder}>+ Add notes</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// LEADS PAGE
+// ---------------------------------------------------------------------------
+function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
   const [activeTab, setActiveTab] = useState('new')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
@@ -353,41 +563,15 @@ function Dashboard({ user }) {
   const [sortBy, setSortBy] = useState('newest_found')
   const [search, setSearch] = useState('')
 
-  const brokerEmail = user.email
-
-  const fetchLeads = async () => {
-    const { data, error } = await supabase
-      .from('posted_broker_leads')
-      .select('*')
-      .order('posted_at', { ascending: false })
-    if (!error && data) {
-      setLeads(data)
-      const listingIds = data.map(l => l.listing_id)
-      const actionMap = await getBrokerActions(brokerEmail, listingIds)
-      setActions(actionMap)
-    }
-    setLoading(false)
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchLeads() }, [])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
-
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
 
-  const tabs = ['new', 'contacted', 'connected', 'not_interested']
-  const tabLabels = { new: 'New Leads', contacted: 'Contacted', connected: 'Connected', not_interested: 'Not Interested' }
+  const tabs = ['new', 'not_interested']
+  const tabLabels = { new: 'New Leads', not_interested: 'Not Interested' }
 
   const filteredLeads = leads
     .filter(lead => {
       const status = getStatus(lead)
       if (activeTab === 'new' && status !== 'new') return false
-      if (activeTab === 'contacted' && !['reached_out', 'follow_up'].includes(status)) return false
-      if (activeTab === 'connected' && status !== 'connected') return false
       if (activeTab === 'not_interested' && status !== 'not_interested') return false
       if (minPrice && lead.price < parseInt(minPrice)) return false
       if (maxPrice && lead.price > parseInt(maxPrice)) return false
@@ -418,48 +602,8 @@ function Dashboard({ user }) {
       }
     })
 
-  const countByStatus = (statuses) => leads.filter(l => statuses.includes(getStatus(l))).length
-
   return (
-    <div style={styles.dashboard}>
-      <div style={styles.header}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
-        <input
-          style={{ ...styles.filterInput, width: '280px' }}
-          type="text"
-          placeholder="🔍 Search listings..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
-        <div style={styles.headerRight}>
-          <span style={styles.userEmail}>{user.email}</span>
-          <button style={styles.logoutButton} onClick={handleLogout}>Sign Out</button>
-        </div>
-      </div>
-
-      <div style={styles.statsBar}>
-        <div style={styles.stat}>
-          <span style={styles.statNumber}>{countByStatus(['new'])}</span>
-          <span style={styles.statLabel}>New Leads</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statNumber}>{countByStatus(['reached_out', 'follow_up'])}</span>
-          <span style={styles.statLabel}>Contacted</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statNumber}>{countByStatus(['connected'])}</span>
-          <span style={styles.statLabel}>Connected</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statNumber}>{leads.filter(l => actions[l.listing_id]?.follow_up_date).length}</span>
-          <span style={styles.statLabel}>Follow Ups</span>
-        </div>
-        <div style={styles.stat}>
-          <span style={styles.statNumber}>{countByStatus(['not_interested'])}</span>
-          <span style={styles.statLabel}>Not Interested</span>
-        </div>
-      </div>
-
+    <div style={styles.pageContent}>
       <div style={styles.filterBar}>
         <div style={styles.tabs}>
           {tabs.map(tab => (
@@ -473,6 +617,7 @@ function Dashboard({ user }) {
           ))}
         </div>
         <div style={styles.filtersRight}>
+          <input style={{ ...styles.filterInput, width: '180px' }} type="text" placeholder="🔍 Search listings..." value={search} onChange={e => setSearch(e.target.value)} />
           <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Sort: Newest Found</option>
             <option value="oldest_found">Sort: Oldest Found</option>
@@ -515,7 +660,7 @@ function Dashboard({ user }) {
               lead={lead}
               brokerEmail={brokerEmail}
               action={actions[lead.listing_id]}
-              onActionChange={fetchLeads}
+              onActionChange={onActionChange}
             />
           ))}
         </div>
@@ -524,6 +669,289 @@ function Dashboard({ user }) {
   )
 }
 
+// ---------------------------------------------------------------------------
+// PIPELINE PAGE
+// ---------------------------------------------------------------------------
+function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) {
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('newest_found')
+  const [search, setSearch] = useState('')
+
+  const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
+  const getFollowUpDate = (lead) => actions[lead.listing_id]?.follow_up_date || ''
+
+  const pipelineLeads = leads
+    .filter(lead => {
+      const status = getStatus(lead)
+      if (!['reached_out', 'follow_up', 'connected'].includes(status)) return false
+      if (statusFilter !== 'all' && status !== statusFilter) return false
+      if (search) {
+        const s = search.toLowerCase()
+        const match = lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s)
+        if (!match) return false
+      }
+      return true
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'price_low': return (a.price || 0) - (b.price || 0)
+        case 'price_high': return (b.price || 0) - (a.price || 0)
+        case 'follow_up_date':
+          const dateA = getFollowUpDate(a) || '9999'
+          const dateB = getFollowUpDate(b) || '9999'
+          return dateA.localeCompare(dateB)
+        case 'newest_found': return new Date(b.posted_at) - new Date(a.posted_at)
+        default: return 0
+      }
+    })
+
+  const countByStatus = (s) => leads.filter(l => getStatus(l) === s).length
+  const overdueCount = leads.filter(l => {
+    const fu = getFollowUpDate(l)
+    if (!fu) return false
+    const today = new Date().toISOString().split('T')[0]
+    return fu < today
+  }).length
+
+  return (
+    <div style={styles.pageContent}>
+      {/* Pipeline stats */}
+      <div style={styles.pipelineStats}>
+        <div style={styles.pipelineStat}>
+          <span style={{ ...styles.pipelineStatNum, color: '#16a34a' }}>{countByStatus('reached_out')}</span>
+          <span style={styles.pipelineStatLabel}>Reached Out</span>
+        </div>
+        <div style={styles.pipelineStat}>
+          <span style={{ ...styles.pipelineStatNum, color: '#d97706' }}>{countByStatus('follow_up')}</span>
+          <span style={styles.pipelineStatLabel}>Follow Up</span>
+        </div>
+        <div style={styles.pipelineStat}>
+          <span style={{ ...styles.pipelineStatNum, color: '#7c3aed' }}>{countByStatus('connected')}</span>
+          <span style={styles.pipelineStatLabel}>Connected</span>
+        </div>
+        <div style={styles.pipelineStat}>
+          <span style={{ ...styles.pipelineStatNum, color: '#dc2626' }}>{overdueCount}</span>
+          <span style={styles.pipelineStatLabel}>Overdue</span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{ ...styles.filterBar, borderTop: '1px solid #2a2a2a' }}>
+        <div style={styles.tabs}>
+          {[
+            { id: 'all', label: 'All Active' },
+            { id: 'reached_out', label: 'Reached Out' },
+            { id: 'follow_up', label: 'Follow Up' },
+            { id: 'connected', label: 'Connected' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id)}
+              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888' }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div style={styles.filtersRight}>
+          <input style={{ ...styles.filterInput, width: '180px' }} type="text" placeholder="🔍 Search pipeline..." value={search} onChange={e => setSearch(e.target.value)} />
+          <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="newest_found">Sort: Newest Found</option>
+            <option value="follow_up_date">Sort: Follow Up Date</option>
+            <option value="price_high">Sort: Price High → Low</option>
+            <option value="price_low">Sort: Price Low → High</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Table header */}
+      {pipelineLeads.length > 0 && (
+        <div style={styles.pipelineHeader}>
+          <div style={{ width: '60px' }}></div>
+          <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Listing</div>
+          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Price</div>
+          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Status</div>
+          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Follow Up</div>
+          <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Notes</div>
+          <div style={{ width: '20px' }}></div>
+        </div>
+      )}
+
+      {loading ? (
+        <p style={styles.loading}>Loading pipeline...</p>
+      ) : pipelineLeads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '80px 60px' }}>
+          <p style={{ color: '#888', fontSize: '16px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
+          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
+        </div>
+      ) : (
+        <div style={styles.pipelineList}>
+          {pipelineLeads.map(lead => (
+            <PipelineRow
+              key={lead.id}
+              lead={lead}
+              brokerEmail={brokerEmail}
+              action={actions[lead.listing_id]}
+              onActionChange={onActionChange}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ANALYTICS PAGE
+// ---------------------------------------------------------------------------
+function AnalyticsPage({ leads, actions }) {
+  const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
+
+  const total = leads.length
+  const contacted = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
+  const connected = leads.filter(l => getStatus(l) === 'connected').length
+  const notInterested = leads.filter(l => getStatus(l) === 'not_interested').length
+
+  const facebookLeads = leads.filter(l => l.platform === 'facebook').length
+  const craigslistLeads = leads.filter(l => l.platform === 'craigslist').length
+  const offerupLeads = leads.filter(l => l.platform === 'offerup').length
+
+  const contactRate = total > 0 ? ((contacted / total) * 100).toFixed(1) : 0
+
+  return (
+    <div style={styles.pageContent}>
+      <div style={{ padding: '32px' }}>
+        <h2 style={{ color: '#fff', fontSize: '22px', margin: '0 0 32px 0' }}>Analytics</h2>
+
+        {/* Overview stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+          {[
+            { label: 'Total Leads', value: total, color: '#2563eb' },
+            { label: 'Contact Rate', value: `${contactRate}%`, color: '#16a34a' },
+            { label: 'Connected', value: connected, color: '#7c3aed' },
+            { label: 'Not Interested', value: notInterested, color: '#dc2626' },
+          ].map(stat => (
+            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a' }}>
+              <p style={{ color: stat.color, fontSize: '32px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
+              <p style={{ color: '#888', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Platform breakdown */}
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a', marginBottom: '24px' }}>
+          <h3 style={{ color: '#fff', fontSize: '16px', margin: '0 0 20px 0' }}>Leads by Platform</h3>
+          <div style={{ display: 'flex', gap: '32px' }}>
+            {[
+              { label: 'Facebook', value: facebookLeads, color: '#1d4ed8' },
+              { label: 'Craigslist', value: craigslistLeads, color: '#16a34a' },
+              { label: 'OfferUp', value: offerupLeads, color: '#d97706' },
+            ].map(p => (
+              <div key={p.label}>
+                <p style={{ color: p.color, fontSize: '28px', fontWeight: '700', margin: '0 0 4px 0' }}>{p.value}</p>
+                <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{p.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p style={{ color: '#555', fontSize: '13px' }}>More analytics coming soon — activity tracking, follow up completion rate, and lead source ROI.</p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// DASHBOARD SHELL
+// ---------------------------------------------------------------------------
+function Dashboard({ user }) {
+  const [leads, setLeads] = useState([])
+  const [actions, setActions] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [activePage, setActivePage] = useState('leads')
+
+  const brokerEmail = user.email
+
+  const fetchLeads = async () => {
+    const { data, error } = await supabase
+      .from('posted_broker_leads')
+      .select('*')
+      .order('posted_at', { ascending: false })
+    if (!error && data) {
+      setLeads(data)
+      const listingIds = data.map(l => l.listing_id)
+      const actionMap = await getBrokerActions(brokerEmail, listingIds)
+      setActions(actionMap)
+    }
+    setLoading(false)
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchLeads() }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
+  const newCount = leads.filter(l => getStatus(l) === 'new').length
+  const pipelineCount = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
+
+  return (
+    <div style={styles.dashboardShell}>
+      <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} />
+
+      <div style={styles.dashboardMain}>
+        {/* Top bar */}
+        <div style={styles.topBar}>
+          <div>
+            <h1 style={{ color: '#fff', fontSize: '18px', margin: 0, fontWeight: '700' }}>
+              {activePage === 'leads' && `Leads`}
+              {activePage === 'pipeline' && `Pipeline`}
+              {activePage === 'analytics' && `Analytics`}
+            </h1>
+            <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>
+              {activePage === 'leads' && `${newCount} new leads`}
+              {activePage === 'pipeline' && `${pipelineCount} active conversations`}
+              {activePage === 'analytics' && `${leads.length} total leads`}
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ color: '#555', fontSize: '13px' }}>{user.email}</span>
+          </div>
+        </div>
+
+        {/* Page content */}
+        {activePage === 'leads' && (
+          <LeadsPage
+            leads={leads}
+            actions={actions}
+            brokerEmail={brokerEmail}
+            onActionChange={fetchLeads}
+            loading={loading}
+          />
+        )}
+        {activePage === 'pipeline' && (
+          <PipelinePage
+            leads={leads}
+            actions={actions}
+            brokerEmail={brokerEmail}
+            onActionChange={fetchLeads}
+            loading={loading}
+          />
+        )}
+        {activePage === 'analytics' && (
+          <AnalyticsPage leads={leads} actions={actions} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// APP
+// ---------------------------------------------------------------------------
 function AppContent() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -559,6 +987,9 @@ export default function App() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// STYLES
+// ---------------------------------------------------------------------------
 const styles = {
   landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
   nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
@@ -596,15 +1027,18 @@ const styles = {
   input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 16px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
   button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
-  dashboard: { minHeight: '100vh', background: '#0a0a0a', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
-  header: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '16px' },
-  headerRight: { display: 'flex', alignItems: 'center', gap: '16px' },
-  userEmail: { color: '#888', fontSize: '14px' },
-  logoutButton: { background: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#888', padding: '6px 12px', cursor: 'pointer', fontSize: '13px' },
-  statsBar: { display: 'flex', gap: '32px', padding: '24px 32px', borderBottom: '1px solid #2a2a2a' },
-  stat: { display: 'flex', flexDirection: 'column', gap: '4px' },
-  statNumber: { fontSize: '28px', fontWeight: '700', color: '#2563eb' },
-  statLabel: { fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  // Dashboard shell
+  dashboardShell: { display: 'flex', minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif" },
+  dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  topBar: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a' },
+  // Sidebar
+  sidebar: { width: '200px', background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '16px 0' },
+  sidebarLogo: { padding: '8px 16px 24px 16px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px' },
+  sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 8px' },
+  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif", transition: 'all 0.1s' },
+  sidebarLogout: { margin: '8px', padding: '10px 12px', background: 'transparent', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif" },
+  // Page content
+  pageContent: { flex: 1, overflow: 'auto', color: '#fff' },
   filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', gap: '16px', flexWrap: 'wrap' },
   tabs: { display: 'flex', gap: '8px' },
   tab: { border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
@@ -646,4 +1080,14 @@ const styles = {
   saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   loading: { color: '#888', textAlign: 'center', padding: '60px' },
+  // Pipeline
+  pipelineStats: { display: 'flex', gap: '24px', padding: '24px 32px', borderBottom: '1px solid #2a2a2a' },
+  pipelineStat: { display: 'flex', flexDirection: 'column', gap: '4px' },
+  pipelineStatNum: { fontSize: '28px', fontWeight: '700' },
+  pipelineStatLabel: { fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  pipelineHeader: { display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 24px', borderBottom: '1px solid #1a1a1a' },
+  pipelineList: { display: 'flex', flexDirection: 'column' },
+  pipelineRow: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer', transition: 'background 0.1s' },
+  pipelinePhoto: { flexShrink: 0 },
+  pipelineExpanded: { background: '#111', padding: '20px 24px 24px 100px', borderBottom: '1px solid #1a1a1a' },
 }
