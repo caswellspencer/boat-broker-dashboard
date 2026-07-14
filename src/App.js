@@ -2,9 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
-// ---------------------------------------------------------------------------
-// LANDING PAGE
-// ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
   return (
@@ -30,7 +27,6 @@ function LandingPage() {
           </div>
         </div>
       </div>
-
       <div style={styles.section}>
         <h2 style={styles.sectionTitle}>How It Works</h2>
         <div style={styles.steps}>
@@ -51,7 +47,6 @@ function LandingPage() {
           </div>
         </div>
       </div>
-
       <div style={styles.valueSection}>
         <div style={styles.valueCard}>
           <div style={styles.valueIcon}>📍</div>
@@ -74,13 +69,11 @@ function LandingPage() {
           <p style={styles.valueText}>Track every conversation, set follow up reminders, and add notes on each seller. Your entire cold outreach pipeline in one dashboard.</p>
         </div>
       </div>
-
       <div style={styles.ctaSection}>
         <h2 style={styles.ctaTitle}>Built by brokers, for brokers.</h2>
         <p style={styles.ctaSubtitle}>Stop scrolling Marketplace manually. Let the leads come to you.</p>
         <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
       </div>
-
       <div style={styles.footer}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
         <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
@@ -89,9 +82,6 @@ function LandingPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// LOGIN
-// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -122,9 +112,6 @@ function LoginPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// SIGNUP
-// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -137,43 +124,28 @@ function SignupPage() {
   const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    getSupportedCities().then(data => setCities(data))
-  }, [])
+  useEffect(() => { getSupportedCities().then(data => setCities(data)) }, [])
 
   const handleSignup = async () => {
-    if (!firstName || !lastName || !email || !password || !selectedCity) {
-      setError('Please fill in all fields')
-      return
-    }
-    setLoading(true)
-    setError('')
+    if (!firstName || !lastName || !email || !password || !selectedCity) { setError('Please fill in all fields'); return }
+    setLoading(true); setError('')
     const { error: signupError } = await supabase.auth.signUp({ email, password })
-    if (signupError) {
-      setError(signupError.message)
-      setLoading(false)
-      return
-    }
+    if (signupError) { setError(signupError.message); setLoading(false); return }
     const city = cities.find(c => c.id === selectedCity)
-    if (city) {
-      await createBrokerSubscription({ full_name: `${firstName} ${lastName}`, email }, city)
-    }
-    setSuccess(true)
-    setLoading(false)
+    if (city) await createBrokerSubscription({ full_name: `${firstName} ${lastName}`, email }, city)
+    setSuccess(true); setLoading(false)
   }
 
-  if (success) {
-    return (
-      <div style={styles.authContainer}>
-        <div style={styles.authBox}>
-          <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
-          <h2 style={styles.authTitle}>You're all set 🚤</h2>
-          <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created and your market is configured. Log in to see your leads.</p>
-          <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
-        </div>
+  if (success) return (
+    <div style={styles.authContainer}>
+      <div style={styles.authBox}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
+        <h2 style={styles.authTitle}>You're all set 🚤</h2>
+        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created and your market is configured. Log in to see your leads.</p>
+        <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
     <div style={styles.authContainer}>
@@ -189,9 +161,7 @@ function SignupPage() {
         <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
         <select style={{ ...styles.input, cursor: 'pointer' }} value={selectedCity} onChange={e => setSelectedCity(e.target.value)}>
           <option value="">Select your market</option>
-          {cities.map(city => (
-            <option key={city.id} value={city.id}>{city.city_label}, {city.state}</option>
-          ))}
+          {cities.map(city => <option key={city.id} value={city.id}>{city.city_label}, {city.state}</option>)}
         </select>
         {error && <p style={styles.error}>{error}</p>}
         <button style={styles.button} onClick={handleSignup} disabled={loading}>{loading ? 'Creating account...' : 'Request Access'}</button>
@@ -205,6 +175,8 @@ function SignupPage() {
 // SIDEBAR
 // ---------------------------------------------------------------------------
 function Sidebar({ activePage, setActivePage, onLogout }) {
+  const [hovered, setHovered] = useState(false)
+
   const navItems = [
     { id: 'leads', label: 'Leads', icon: '🔍' },
     { id: 'pipeline', label: 'Pipeline', icon: '📋' },
@@ -212,10 +184,30 @@ function Sidebar({ activePage, setActivePage, onLogout }) {
   ]
 
   return (
-    <div style={styles.sidebar}>
-      <div style={styles.sidebarLogo}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain' }} />
+    <div
+      style={{
+        ...styles.sidebar,
+        width: hovered ? '180px' : '52px',
+        transition: 'width 0.2s ease',
+        overflow: 'hidden',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={styles.sidebarLogoWrap}>
+        <img
+          src="/yachtwatch-logo.png"
+          alt="YachtWatch"
+          style={{
+            height: '28px',
+            objectFit: 'contain',
+            opacity: hovered ? 1 : 0,
+            transition: 'opacity 0.2s ease',
+            whiteSpace: 'nowrap',
+          }}
+        />
       </div>
+
       <nav style={styles.sidebarNav}>
         {navItems.map(item => (
           <button
@@ -226,14 +218,25 @@ function Sidebar({ activePage, setActivePage, onLogout }) {
               background: activePage === item.id ? '#1e3a5f' : 'transparent',
               color: activePage === item.id ? '#60a5fa' : '#888',
               borderLeft: activePage === item.id ? '3px solid #2563eb' : '3px solid transparent',
+              justifyContent: hovered ? 'flex-start' : 'center',
             }}
           >
-            <span style={{ fontSize: '16px' }}>{item.icon}</span>
-            <span>{item.label}</span>
+            <span style={{ fontSize: '16px', flexShrink: 0 }}>{item.icon}</span>
+            {hovered && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{item.label}</span>}
           </button>
         ))}
       </nav>
-      <button style={styles.sidebarLogout} onClick={onLogout}>Sign Out</button>
+
+      <button
+        style={{
+          ...styles.sidebarLogout,
+          justifyContent: hovered ? 'flex-start' : 'center',
+        }}
+        onClick={onLogout}
+      >
+        <span style={{ flexShrink: 0 }}>🚪</span>
+        {hovered && <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>Sign Out</span>}
+      </button>
     </div>
   )
 }
@@ -256,29 +259,25 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
     await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus })
     if (onActionChange) onActionChange()
   }
-
   const handleFollowUp = async () => {
     await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate })
     setShowFollowUp(false)
   }
-
   const handleSaveNotes = async () => {
     setSavingNotes(true)
     await upsertBrokerAction(brokerEmail, lead.listing_id, { notes })
-    setSavingNotes(false)
-    setEditingNotes(false)
+    setSavingNotes(false); setEditingNotes(false)
   }
 
   const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
   const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
   const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
-
   const platform = lead.platform || 'facebook'
   const platformColor = platformColors[platform] || '#1d4ed8'
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
-  const photos = lead.photos && lead.photos.length > 0 ? lead.photos : lead.image_url ? [lead.image_url] : []
+  const photos = lead.photos?.length > 0 ? lead.photos : lead.image_url ? [lead.image_url] : []
 
   const getDaysAgo = (dateStr) => {
     if (!dateStr) return null
@@ -311,9 +310,7 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
       )}
       <div style={styles.cardBody}>
         <h3 style={styles.cardTitle}>{lead.title}</h3>
-        <div style={styles.cardRow}>
-          <span style={styles.price}>${lead.price?.toLocaleString()}</span>
-        </div>
+        <span style={styles.price}>${lead.price?.toLocaleString()}</span>
         <div style={styles.checklist}>
           <CheckItem label="Year" value={lead.boat_year} />
           <CheckItem label="Make" value={lead.boat_make} />
@@ -329,11 +326,7 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
             <button onClick={() => setShowDescription(!showDescription)} style={styles.descriptionToggle}>
               {showDescription ? '▲ Hide Description' : '▼ View Description'}
             </button>
-            {showDescription && (
-              <div style={styles.descriptionBox}>
-                <p style={styles.descriptionText}>{lead.description}</p>
-              </div>
-            )}
+            {showDescription && <div style={styles.descriptionBox}><p style={styles.descriptionText}>{lead.description}</p></div>}
           </div>
         )}
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>View Listing →</a>
@@ -354,11 +347,8 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
         </div>
         <div style={styles.statusRow}>
           {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
-            <button
-              key={s}
-              onClick={() => { handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
-              style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}
-            >
+            <button key={s} onClick={() => { handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
+              style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}>
               {statusLabels[s]}
             </button>
           ))}
@@ -393,7 +383,6 @@ function CheckItem({ label, value }) {
 function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
   const [status, setStatus] = useState(action?.status || 'new')
   const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
-  const [showFollowUp, setShowFollowUp] = useState(false)
   const [notes, setNotes] = useState(action?.notes || '')
   const [editingNotes, setEditingNotes] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
@@ -404,23 +393,18 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
     await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus })
     if (onActionChange) onActionChange()
   }
-
   const handleFollowUp = async () => {
     await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate })
-    setShowFollowUp(false)
   }
-
   const handleSaveNotes = async () => {
     setSavingNotes(true)
     await upsertBrokerAction(brokerEmail, lead.listing_id, { notes })
-    setSavingNotes(false)
-    setEditingNotes(false)
+    setSavingNotes(false); setEditingNotes(false)
   }
 
   const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
   const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
   const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
-
   const platform = lead.platform || 'facebook'
   const platformColor = platformColors[platform] || '#1d4ed8'
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
@@ -436,82 +420,49 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
 
   return (
     <>
-      <div
-        style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }}
-        onClick={() => setExpanded(!expanded)}
-      >
-        {/* Photo */}
+      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }} onClick={() => setExpanded(!expanded)}>
         <div style={styles.pipelinePhoto}>
-          {photo ? (
-            <img src={photo} alt={lead.title} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
-          ) : (
-            <div style={{ width: '60px', height: '60px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
-          )}
+          {photo
+            ? <img src={photo} alt={lead.title} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
+            : <div style={{ width: '60px', height: '60px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
+          }
         </div>
-
-        {/* Title & Location */}
         <div style={{ flex: 2 }}>
           <p style={{ color: '#fff', fontWeight: '600', fontSize: '14px', margin: '0 0 4px 0' }}>{lead.title}</p>
           <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
         </div>
-
-        {/* Price */}
         <div style={{ flex: 1 }}>
           <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
           <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 6px', fontSize: '10px', color: '#fff', fontWeight: '700', marginTop: '4px' }}>{platformLabel}</div>
         </div>
-
-        {/* Status */}
         <div style={{ flex: 1 }}>
-          <span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: '700' }}>
-            {statusLabels[status]}
-          </span>
+          <span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: '700' }}>{statusLabels[status]}</span>
         </div>
-
-        {/* Follow Up */}
         <div style={{ flex: 1 }}>
-          {followUpDate ? (
-            <p style={{ color: getFollowUpColor(), fontSize: '12px', margin: 0, fontWeight: '600' }}>
-              📅 {new Date(followUpDate).toLocaleDateString()}
-            </p>
-          ) : (
-            <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>No follow up set</p>
-          )}
+          {followUpDate
+            ? <p style={{ color: getFollowUpColor(), fontSize: '12px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p>
+            : <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>No follow up set</p>
+          }
         </div>
-
-        {/* Notes preview */}
         <div style={{ flex: 2 }}>
-          <p style={{ color: '#888', fontSize: '12px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-            {notes || '+ Add notes'}
-          </p>
+          <p style={{ color: '#888', fontSize: '12px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{notes || '+ Add notes'}</p>
         </div>
-
-        {/* Expand arrow */}
         <div style={{ color: '#555', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</div>
       </div>
-
-      {/* Expanded detail */}
       {expanded && (
         <div style={styles.pipelineExpanded}>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-
-            {/* Status buttons */}
             <div>
               <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Status</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
-                  <button
-                    key={s}
-                    onClick={e => { e.stopPropagation(); handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
-                    style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}
-                  >
+                  <button key={s} onClick={e => { e.stopPropagation(); handleStatus(s) }}
+                    style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}>
                     {statusLabels[s]}
                   </button>
                 ))}
               </div>
             </div>
-
-            {/* Follow up date */}
             <div>
               <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Follow Up Date</p>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -519,14 +470,10 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
                 <button onClick={e => { e.stopPropagation(); handleFollowUp() }} style={styles.saveBtn}>Save</button>
               </div>
             </div>
-
-            {/* View listing */}
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
               <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link} onClick={e => e.stopPropagation()}>View Listing →</a>
             </div>
           </div>
-
-          {/* Notes */}
           <div style={{ marginTop: '16px' }}>
             <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Notes</p>
             {editingNotes ? (
@@ -561,12 +508,8 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
   const [maxYear, setMaxYear] = useState('')
   const [maxDaysAgo, setMaxDaysAgo] = useState('')
   const [sortBy, setSortBy] = useState('newest_found')
-  const [search, setSearch] = useState('')
 
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
-
-  const tabs = ['new', 'not_interested']
-  const tabLabels = { new: 'New Leads', not_interested: 'Not Interested' }
 
   const filteredLeads = leads
     .filter(lead => {
@@ -581,11 +524,6 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
       if (maxDaysAgo && lead.listing_date) {
         const days = Math.floor((new Date() - new Date(lead.listing_date)) / (1000 * 60 * 60 * 24))
         if (days > parseInt(maxDaysAgo)) return false
-      }
-      if (search) {
-        const s = search.toLowerCase()
-        const match = lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s) || lead.boat_model?.toLowerCase().includes(s) || lead.boat_year?.toLowerCase().includes(s)
-        if (!match) return false
       }
       return true
     })
@@ -606,18 +544,14 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
     <div style={styles.pageContent}>
       <div style={styles.filterBar}>
         <div style={styles.tabs}>
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{ ...styles.tab, background: activeTab === tab ? '#2563eb' : 'transparent', color: activeTab === tab ? '#fff' : '#888' }}
-            >
-              {tabLabels[tab]}
+          {[{ id: 'new', label: 'New Leads' }, { id: 'not_interested', label: 'Not Interested' }].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              style={{ ...styles.tab, background: activeTab === tab.id ? '#2563eb' : 'transparent', color: activeTab === tab.id ? '#fff' : '#888' }}>
+              {tab.label}
             </button>
           ))}
         </div>
         <div style={styles.filtersRight}>
-          <input style={{ ...styles.filterInput, width: '180px' }} type="text" placeholder="🔍 Search listings..." value={search} onChange={e => setSearch(e.target.value)} />
           <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Sort: Newest Found</option>
             <option value="oldest_found">Sort: Oldest Found</option>
@@ -647,21 +581,10 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
           </select>
         </div>
       </div>
-
-      {loading ? (
-        <p style={styles.loading}>Loading leads...</p>
-      ) : filteredLeads.length === 0 ? (
-        <p style={styles.loading}>No leads match your filters.</p>
-      ) : (
+      {loading ? <p style={styles.loading}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={styles.loading}>No leads match your filters.</p> : (
         <div style={styles.grid}>
           {filteredLeads.map(lead => (
-            <LeadCard
-              key={lead.id}
-              lead={lead}
-              brokerEmail={brokerEmail}
-              action={actions[lead.listing_id]}
-              onActionChange={onActionChange}
-            />
+            <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
           ))}
         </div>
       )}
@@ -696,10 +619,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
       switch (sortBy) {
         case 'price_low': return (a.price || 0) - (b.price || 0)
         case 'price_high': return (b.price || 0) - (a.price || 0)
-        case 'follow_up_date':
-          const dateA = getFollowUpDate(a) || '9999'
-          const dateB = getFollowUpDate(b) || '9999'
-          return dateA.localeCompare(dateB)
+        case 'follow_up_date': return (getFollowUpDate(a) || '9999').localeCompare(getFollowUpDate(b) || '9999')
         case 'newest_found': return new Date(b.posted_at) - new Date(a.posted_at)
         default: return 0
       }
@@ -709,46 +629,29 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
   const overdueCount = leads.filter(l => {
     const fu = getFollowUpDate(l)
     if (!fu) return false
-    const today = new Date().toISOString().split('T')[0]
-    return fu < today
+    return fu < new Date().toISOString().split('T')[0]
   }).length
 
   return (
     <div style={styles.pageContent}>
-      {/* Pipeline stats */}
       <div style={styles.pipelineStats}>
-        <div style={styles.pipelineStat}>
-          <span style={{ ...styles.pipelineStatNum, color: '#16a34a' }}>{countByStatus('reached_out')}</span>
-          <span style={styles.pipelineStatLabel}>Reached Out</span>
-        </div>
-        <div style={styles.pipelineStat}>
-          <span style={{ ...styles.pipelineStatNum, color: '#d97706' }}>{countByStatus('follow_up')}</span>
-          <span style={styles.pipelineStatLabel}>Follow Up</span>
-        </div>
-        <div style={styles.pipelineStat}>
-          <span style={{ ...styles.pipelineStatNum, color: '#7c3aed' }}>{countByStatus('connected')}</span>
-          <span style={styles.pipelineStatLabel}>Connected</span>
-        </div>
-        <div style={styles.pipelineStat}>
-          <span style={{ ...styles.pipelineStatNum, color: '#dc2626' }}>{overdueCount}</span>
-          <span style={styles.pipelineStatLabel}>Overdue</span>
-        </div>
+        {[
+          { label: 'Reached Out', value: countByStatus('reached_out'), color: '#16a34a' },
+          { label: 'Follow Up', value: countByStatus('follow_up'), color: '#d97706' },
+          { label: 'Connected', value: countByStatus('connected'), color: '#7c3aed' },
+          { label: 'Overdue', value: overdueCount, color: '#dc2626' },
+        ].map(s => (
+          <div key={s.label} style={styles.pipelineStat}>
+            <span style={{ ...styles.pipelineStatNum, color: s.color }}>{s.value}</span>
+            <span style={styles.pipelineStatLabel}>{s.label}</span>
+          </div>
+        ))}
       </div>
-
-      {/* Filters */}
       <div style={{ ...styles.filterBar, borderTop: '1px solid #2a2a2a' }}>
         <div style={styles.tabs}>
-          {[
-            { id: 'all', label: 'All Active' },
-            { id: 'reached_out', label: 'Reached Out' },
-            { id: 'follow_up', label: 'Follow Up' },
-            { id: 'connected', label: 'Connected' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
-              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888' }}
-            >
+          {[{ id: 'all', label: 'All Active' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
+            <button key={tab.id} onClick={() => setStatusFilter(tab.id)}
+              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888' }}>
               {tab.label}
             </button>
           ))}
@@ -763,23 +666,18 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
           </select>
         </div>
       </div>
-
-      {/* Table header */}
       {pipelineLeads.length > 0 && (
         <div style={styles.pipelineHeader}>
-          <div style={{ width: '60px' }}></div>
+          <div style={{ width: '60px' }} />
           <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Listing</div>
           <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Price</div>
           <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Status</div>
           <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Follow Up</div>
           <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Notes</div>
-          <div style={{ width: '20px' }}></div>
+          <div style={{ width: '20px' }} />
         </div>
       )}
-
-      {loading ? (
-        <p style={styles.loading}>Loading pipeline...</p>
-      ) : pipelineLeads.length === 0 ? (
+      {loading ? <p style={styles.loading}>Loading pipeline...</p> : pipelineLeads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '80px 60px' }}>
           <p style={{ color: '#888', fontSize: '16px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
           <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
@@ -787,13 +685,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
       ) : (
         <div style={styles.pipelineList}>
           {pipelineLeads.map(lead => (
-            <PipelineRow
-              key={lead.id}
-              lead={lead}
-              brokerEmail={brokerEmail}
-              action={actions[lead.listing_id]}
-              onActionChange={onActionChange}
-            />
+            <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
           ))}
         </div>
       )}
@@ -806,24 +698,19 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
 // ---------------------------------------------------------------------------
 function AnalyticsPage({ leads, actions }) {
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
-
   const total = leads.length
   const contacted = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
   const connected = leads.filter(l => getStatus(l) === 'connected').length
   const notInterested = leads.filter(l => getStatus(l) === 'not_interested').length
-
+  const contactRate = total > 0 ? ((contacted / total) * 100).toFixed(1) : 0
   const facebookLeads = leads.filter(l => l.platform === 'facebook').length
   const craigslistLeads = leads.filter(l => l.platform === 'craigslist').length
   const offerupLeads = leads.filter(l => l.platform === 'offerup').length
-
-  const contactRate = total > 0 ? ((contacted / total) * 100).toFixed(1) : 0
 
   return (
     <div style={styles.pageContent}>
       <div style={{ padding: '32px' }}>
         <h2 style={{ color: '#fff', fontSize: '22px', margin: '0 0 32px 0' }}>Analytics</h2>
-
-        {/* Overview stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
           {[
             { label: 'Total Leads', value: total, color: '#2563eb' },
@@ -837,16 +724,10 @@ function AnalyticsPage({ leads, actions }) {
             </div>
           ))}
         </div>
-
-        {/* Platform breakdown */}
         <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a', marginBottom: '24px' }}>
           <h3 style={{ color: '#fff', fontSize: '16px', margin: '0 0 20px 0' }}>Leads by Platform</h3>
           <div style={{ display: 'flex', gap: '32px' }}>
-            {[
-              { label: 'Facebook', value: facebookLeads, color: '#1d4ed8' },
-              { label: 'Craigslist', value: craigslistLeads, color: '#16a34a' },
-              { label: 'OfferUp', value: offerupLeads, color: '#d97706' },
-            ].map(p => (
+            {[{ label: 'Facebook', value: facebookLeads, color: '#1d4ed8' }, { label: 'Craigslist', value: craigslistLeads, color: '#16a34a' }, { label: 'OfferUp', value: offerupLeads, color: '#d97706' }].map(p => (
               <div key={p.label}>
                 <p style={{ color: p.color, fontSize: '28px', fontWeight: '700', margin: '0 0 4px 0' }}>{p.value}</p>
                 <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{p.label}</p>
@@ -854,7 +735,6 @@ function AnalyticsPage({ leads, actions }) {
             ))}
           </div>
         </div>
-
         <p style={{ color: '#555', fontSize: '13px' }}>More analytics coming soon — activity tracking, follow up completion rate, and lead source ROI.</p>
       </div>
     </div>
@@ -869,14 +749,12 @@ function Dashboard({ user }) {
   const [actions, setActions] = useState({})
   const [loading, setLoading] = useState(true)
   const [activePage, setActivePage] = useState('leads')
+  const [search, setSearch] = useState('')
 
   const brokerEmail = user.email
 
   const fetchLeads = async () => {
-    const { data, error } = await supabase
-      .from('posted_broker_leads')
-      .select('*')
-      .order('posted_at', { ascending: false })
+    const { data, error } = await supabase.from('posted_broker_leads').select('*').order('posted_at', { ascending: false })
     if (!error && data) {
       setLeads(data)
       const listingIds = data.map(l => l.listing_id)
@@ -896,7 +774,17 @@ function Dashboard({ user }) {
 
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
   const newCount = leads.filter(l => getStatus(l) === 'new').length
-  const pipelineCount = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
+  const reachedOutCount = leads.filter(l => getStatus(l) === 'reached_out').length
+  const followUpCount = leads.filter(l => getStatus(l) === 'follow_up').length
+  const connectedCount = leads.filter(l => getStatus(l) === 'connected').length
+  const notInterestedCount = leads.filter(l => getStatus(l) === 'not_interested').length
+
+  const filteredLeads = search
+    ? leads.filter(lead => {
+      const s = search.toLowerCase()
+      return lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s) || lead.boat_model?.toLowerCase().includes(s) || lead.boat_year?.toLowerCase().includes(s)
+    })
+    : leads
 
   return (
     <div style={styles.dashboardShell}>
@@ -905,45 +793,41 @@ function Dashboard({ user }) {
       <div style={styles.dashboardMain}>
         {/* Top bar */}
         <div style={styles.topBar}>
-          <div>
-            <h1 style={{ color: '#fff', fontSize: '18px', margin: 0, fontWeight: '700' }}>
-              {activePage === 'leads' && `Leads`}
-              {activePage === 'pipeline' && `Pipeline`}
-              {activePage === 'analytics' && `Analytics`}
-            </h1>
-            <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>
-              {activePage === 'leads' && `${newCount} new leads`}
-              {activePage === 'pipeline' && `${pipelineCount} active conversations`}
-              {activePage === 'analytics' && `${leads.length} total leads`}
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '32px', objectFit: 'contain' }} />
+            <input
+              style={{ ...styles.filterInput, width: '240px' }}
+              type="text"
+              placeholder="🔍 Search listings..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ color: '#555', fontSize: '13px' }}>{user.email}</span>
           </div>
         </div>
 
+        {/* Stats bar */}
+        <div style={styles.statsBar}>
+          {[
+            { label: 'New Leads', value: newCount, color: '#2563eb' },
+            { label: 'Reached Out', value: reachedOutCount, color: '#16a34a' },
+            { label: 'Follow Up', value: followUpCount, color: '#d97706' },
+            { label: 'Connected', value: connectedCount, color: '#7c3aed' },
+            { label: 'Not Interested', value: notInterestedCount, color: '#dc2626' },
+          ].map(s => (
+            <div key={s.label} style={styles.stat}>
+              <span style={{ ...styles.statNumber, color: s.color }}>{s.value}</span>
+              <span style={styles.statLabel}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
         {/* Page content */}
-        {activePage === 'leads' && (
-          <LeadsPage
-            leads={leads}
-            actions={actions}
-            brokerEmail={brokerEmail}
-            onActionChange={fetchLeads}
-            loading={loading}
-          />
-        )}
-        {activePage === 'pipeline' && (
-          <PipelinePage
-            leads={leads}
-            actions={actions}
-            brokerEmail={brokerEmail}
-            onActionChange={fetchLeads}
-            loading={loading}
-          />
-        )}
-        {activePage === 'analytics' && (
-          <AnalyticsPage leads={leads} actions={actions} />
-        )}
+        {activePage === 'leads' && <LeadsPage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} />}
+        {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} />}
+        {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} />}
       </div>
     </div>
   )
@@ -1027,17 +911,18 @@ const styles = {
   input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 16px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
   button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
-  // Dashboard shell
   dashboardShell: { display: 'flex', minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif" },
   dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  topBar: { background: '#1a1a1a', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a' },
-  // Sidebar
-  sidebar: { width: '200px', background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '16px 0' },
-  sidebarLogo: { padding: '8px 16px 24px 16px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px' },
-  sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 8px' },
-  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif", transition: 'all 0.1s' },
-  sidebarLogout: { margin: '8px', padding: '10px 12px', background: 'transparent', border: '1px solid #2a2a2a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif" },
-  // Page content
+  topBar: { background: '#1a1a1a', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '16px' },
+  statsBar: { display: 'flex', gap: '32px', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', background: '#111' },
+  stat: { display: 'flex', flexDirection: 'column', gap: '2px' },
+  statNumber: { fontSize: '22px', fontWeight: '700' },
+  statLabel: { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0 },
+  sidebarLogoWrap: { padding: '8px 14px 20px 14px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px', height: '44px', display: 'flex', alignItems: 'center' },
+  sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 6px' },
+  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif' " },
+  sidebarLogout: { margin: '8px 6px 4px 6px', padding: '10px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '0px' },
   pageContent: { flex: 1, overflow: 'auto', color: '#fff' },
   filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', gap: '16px', flexWrap: 'wrap' },
   tabs: { display: 'flex', gap: '8px' },
@@ -1056,7 +941,6 @@ const styles = {
   photoCounter: { position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '10px' },
   cardBody: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' },
   cardTitle: { color: '#ffffff', fontSize: '15px', margin: 0, fontWeight: '600' },
-  cardRow: { display: 'flex', alignItems: 'center', gap: '8px' },
   price: { color: '#ffffff', fontSize: '20px', fontWeight: '700' },
   checklist: { background: '#2a2a2a', borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '4px' },
   checkItem: { display: 'flex', gap: '8px', fontSize: '13px' },
@@ -1080,14 +964,13 @@ const styles = {
   saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   loading: { color: '#888', textAlign: 'center', padding: '60px' },
-  // Pipeline
-  pipelineStats: { display: 'flex', gap: '24px', padding: '24px 32px', borderBottom: '1px solid #2a2a2a' },
-  pipelineStat: { display: 'flex', flexDirection: 'column', gap: '4px' },
-  pipelineStatNum: { fontSize: '28px', fontWeight: '700' },
-  pipelineStatLabel: { fontSize: '12px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  pipelineStats: { display: 'flex', gap: '24px', padding: '20px 32px', borderBottom: '1px solid #2a2a2a' },
+  pipelineStat: { display: 'flex', flexDirection: 'column', gap: '2px' },
+  pipelineStatNum: { fontSize: '24px', fontWeight: '700' },
+  pipelineStatLabel: { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
   pipelineHeader: { display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 24px', borderBottom: '1px solid #1a1a1a' },
   pipelineList: { display: 'flex', flexDirection: 'column' },
-  pipelineRow: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer', transition: 'background 0.1s' },
+  pipelineRow: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer' },
   pipelinePhoto: { flexShrink: 0 },
   pipelineExpanded: { background: '#111', padding: '20px 24px 24px 100px', borderBottom: '1px solid #1a1a1a' },
 }
