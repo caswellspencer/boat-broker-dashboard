@@ -2,79 +2,94 @@ import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
+// ---------------------------------------------------------------------------
+// MOBILE HOOK
+// ---------------------------------------------------------------------------
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
+// ---------------------------------------------------------------------------
+// LANDING PAGE
+// ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
+
   return (
     <div style={styles.landing}>
-      <div style={styles.nav}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '48px', objectFit: 'contain' }} />
+      <div style={{ ...styles.nav, padding: isMobile ? '16px 20px' : '20px 60px' }}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '36px' : '48px', objectFit: 'contain' }} />
         <button style={styles.navButton} onClick={() => navigate('/login')}>Sign In</button>
       </div>
+
       <div style={{
         ...styles.hero,
         backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(10,10,10,1)), url(/hero-yacht.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        padding: '160px 60px',
+        padding: isMobile ? '120px 24px 60px' : '160px 60px',
       }}>
-        <div style={styles.heroContent}>
+        <div style={{ ...styles.heroContent, maxWidth: isMobile ? '100%' : '720px' }}>
           <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
-          <h1 style={styles.heroTitle}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
-          <p style={styles.heroSubtitle}>The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.</p>
-          <div style={styles.heroButtons}>
-            <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
-            <button style={styles.heroSecondary} onClick={() => navigate('/login')}>Sign In</button>
+          <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? '32px' : '52px' }}>
+            Find Motivated Boat Sellers<br />Before Anyone Else Does
+          </h1>
+          <p style={{ ...styles.heroSubtitle, fontSize: isMobile ? '15px' : '18px' }}>
+            The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.
+          </p>
+          <div style={{ ...styles.heroButtons, flexDirection: isMobile ? 'column' : 'row' }}>
+            <button style={{ ...styles.heroCta, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/signup')}>Get Early Access</button>
+            <button style={{ ...styles.heroSecondary, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/login')}>Sign In</button>
           </div>
         </div>
       </div>
-      <div style={styles.section}>
+
+      <div style={{ ...styles.section, padding: isMobile ? '60px 24px' : '80px 60px' }}>
         <h2 style={styles.sectionTitle}>How It Works</h2>
-        <div style={styles.steps}>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>01</div>
-            <h3 style={styles.stepTitle}>We Scrape</h3>
-            <p style={styles.stepText}>We scan Facebook Marketplace, Craigslist, and OfferUp every morning and afternoon for private sellers listing boats over $50k in your market.</p>
-          </div>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>02</div>
-            <h3 style={styles.stepTitle}>We Filter</h3>
-            <p style={styles.stepText}>We read every description looking for the signals you already know — moving out of state, health reasons, behind on slip fees, repo, estate sales. The listings that hit your dashboard are the ones worth calling.</p>
-          </div>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>03</div>
-            <h3 style={styles.stepTitle}>You Close</h3>
-            <p style={styles.stepText}>You get an email the moment a lead comes in. Open the dashboard, read the description, and reach out before anyone else knows it exists.</p>
-          </div>
+        <div style={{ ...styles.steps, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '32px' : '40px' }}>
+          {[
+            { num: '01', title: 'We Scrape', text: 'We scan Facebook Marketplace, Craigslist, and OfferUp every morning and afternoon for private sellers listing boats over $50k in your market.' },
+            { num: '02', title: 'We Filter', text: 'We read every description looking for the signals you already know — moving out of state, health reasons, behind on slip fees, repo, estate sales.' },
+            { num: '03', title: 'You Close', text: 'You get an email the moment a lead comes in. Open the dashboard, read the description, and reach out before anyone else knows it exists.' },
+          ].map(s => (
+            <div key={s.num} style={styles.step}>
+              <div style={styles.stepNumber}>{s.num}</div>
+              <h3 style={styles.stepTitle}>{s.title}</h3>
+              <p style={styles.stepText}>{s.text}</p>
+            </div>
+          ))}
         </div>
       </div>
-      <div style={styles.valueSection}>
-        <div style={styles.valueCard}>
-          <div style={styles.valueIcon}>📍</div>
-          <h3 style={styles.valueTitle}>Three Platforms</h3>
-          <p style={styles.valueText}>Facebook has the volume. Craigslist has the hidden gems. OfferUp catches what the others miss. All three in one place, color coded by source.</p>
-        </div>
-        <div style={styles.valueCard}>
-          <div style={styles.valueIcon}>🚨</div>
-          <h3 style={styles.valueTitle}>Motivated Seller Detection</h3>
-          <p style={styles.valueText}>We're not just looking for boats for sale. We're looking for owners who need to sell — and there's a difference.</p>
-        </div>
-        <div style={styles.valueCard}>
-          <div style={styles.valueIcon}>📧</div>
-          <h3 style={styles.valueTitle}>Instant Email Alerts</h3>
-          <p style={styles.valueText}>The broker who calls first wins the listing. We make sure that broker is you.</p>
-        </div>
-        <div style={styles.valueCard}>
-          <div style={styles.valueIcon}>📋</div>
-          <h3 style={styles.valueTitle}>Built-in CRM</h3>
-          <p style={styles.valueText}>Track every conversation, set follow up reminders, and add notes on each seller. Your entire cold outreach pipeline in one dashboard.</p>
-        </div>
+
+      <div style={{ ...styles.valueSection, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', padding: isMobile ? '40px 24px' : '80px 60px' }}>
+        {[
+          { icon: '📍', title: 'Three Platforms', text: 'Facebook has the volume. Craigslist has the hidden gems. OfferUp catches what the others miss.' },
+          { icon: '🚨', title: 'Motivated Seller Detection', text: "We're not just looking for boats for sale. We're looking for owners who need to sell." },
+          { icon: '📧', title: 'Instant Email Alerts', text: 'The broker who calls first wins the listing. We make sure that broker is you.' },
+          { icon: '📋', title: 'Built-in CRM', text: 'Track every conversation, set follow up reminders, and add notes on each seller.' },
+        ].map(v => (
+          <div key={v.title} style={styles.valueCard}>
+            <div style={styles.valueIcon}>{v.icon}</div>
+            <h3 style={styles.valueTitle}>{v.title}</h3>
+            <p style={styles.valueText}>{v.text}</p>
+          </div>
+        ))}
       </div>
-      <div style={styles.ctaSection}>
-        <h2 style={styles.ctaTitle}>Built by brokers, for brokers.</h2>
+
+      <div style={{ ...styles.ctaSection, padding: isMobile ? '60px 24px' : '100px 60px' }}>
+        <h2 style={{ ...styles.ctaTitle, fontSize: isMobile ? '28px' : '40px' }}>Built by brokers, for brokers.</h2>
         <p style={styles.ctaSubtitle}>Stop scrolling Marketplace manually. Let the leads come to you.</p>
-        <button style={styles.heroCta} onClick={() => navigate('/signup')}>Get Early Access</button>
+        <button style={{ ...styles.heroCta, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/signup')}>Get Early Access</button>
       </div>
-      <div style={styles.footer}>
+
+      <div style={{ ...styles.footer, padding: isMobile ? '24px' : '32px 60px' }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
         <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
       </div>
@@ -82,6 +97,9 @@ function LandingPage() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// LOGIN
+// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -90,8 +108,7 @@ function LoginPage() {
   const navigate = useNavigate()
 
   const handleLogin = async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) setError(error.message)
     setLoading(false)
@@ -112,6 +129,9 @@ function LoginPage() {
   )
 }
 
+// ---------------------------------------------------------------------------
+// SIGNUP
+// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -141,7 +161,7 @@ function SignupPage() {
       <div style={styles.authBox}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
         <h2 style={styles.authTitle}>You're all set 🚤</h2>
-        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created and your market is configured. Log in to see your leads.</p>
+        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created. Log in to see your leads.</p>
         <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
       </div>
     </div>
@@ -172,9 +192,9 @@ function SignupPage() {
 }
 
 // ---------------------------------------------------------------------------
-// SIDEBAR
+// SIDEBAR / BOTTOM NAV
 // ---------------------------------------------------------------------------
-function Sidebar({ activePage, setActivePage, onLogout }) {
+function Sidebar({ activePage, setActivePage, onLogout, isMobile }) {
   const [hovered, setHovered] = useState(false)
 
   const navItems = [
@@ -183,31 +203,43 @@ function Sidebar({ activePage, setActivePage, onLogout }) {
     { id: 'analytics', label: 'Analytics', icon: '📊' },
   ]
 
+  if (isMobile) {
+    return (
+      <div style={styles.bottomNav}>
+        {navItems.map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActivePage(item.id)}
+            style={{
+              ...styles.bottomNavItem,
+              color: activePage === item.id ? '#2563eb' : '#555',
+              borderTop: activePage === item.id ? '2px solid #2563eb' : '2px solid transparent',
+            }}
+          >
+            <span style={{ fontSize: '20px' }}>{item.icon}</span>
+            <span style={{ fontSize: '10px', marginTop: '2px' }}>{item.label}</span>
+          </button>
+        ))}
+        <button
+          style={{ ...styles.bottomNavItem, color: '#555', borderTop: '2px solid transparent' }}
+          onClick={onLogout}
+        >
+          <span style={{ fontSize: '20px' }}>🚪</span>
+          <span style={{ fontSize: '10px', marginTop: '2px' }}>Sign Out</span>
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div
-      style={{
-        ...styles.sidebar,
-        width: hovered ? '180px' : '52px',
-        transition: 'width 0.2s ease',
-        overflow: 'hidden',
-      }}
+      style={{ ...styles.sidebar, width: hovered ? '180px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div style={styles.sidebarLogoWrap}>
-        <img
-          src="/yachtwatch-logo.png"
-          alt="YachtWatch"
-          style={{
-            height: '28px',
-            objectFit: 'contain',
-            opacity: hovered ? 1 : 0,
-            transition: 'opacity 0.2s ease',
-            whiteSpace: 'nowrap',
-          }}
-        />
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease', whiteSpace: 'nowrap' }} />
       </div>
-
       <nav style={styles.sidebarNav}>
         {navItems.map(item => (
           <button
@@ -226,14 +258,7 @@ function Sidebar({ activePage, setActivePage, onLogout }) {
           </button>
         ))}
       </nav>
-
-      <button
-        style={{
-          ...styles.sidebarLogout,
-          justifyContent: hovered ? 'flex-start' : 'center',
-        }}
-        onClick={onLogout}
-      >
+      <button style={{ ...styles.sidebarLogout, justifyContent: hovered ? 'flex-start' : 'center' }} onClick={onLogout}>
         <span style={{ flexShrink: 0 }}>🚪</span>
         {hovered && <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>Sign Out</span>}
       </button>
@@ -251,7 +276,6 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   const [notes, setNotes] = useState(action?.notes || '')
   const [editingNotes, setEditingNotes] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
-  const [showDescription, setShowDescription] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
 
   const handleStatus = async (newStatus) => {
@@ -321,14 +345,6 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
         {lead.location && <p style={styles.cardMeta}>📍 {lead.location}</p>}
         {lead.listing_date && <p style={styles.cardMeta}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>}
         <p style={styles.cardMeta}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
-        {lead.description && (
-          <div>
-            <button onClick={() => setShowDescription(!showDescription)} style={styles.descriptionToggle}>
-              {showDescription ? '▲ Hide Description' : '▼ View Description'}
-            </button>
-            {showDescription && <div style={styles.descriptionBox}><p style={styles.descriptionText}>{lead.description}</p></div>}
-          </div>
-        )}
         <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>View Listing →</a>
         <div style={styles.notesSection}>
           {editingNotes ? (
@@ -380,7 +396,7 @@ function CheckItem({ label, value }) {
 // ---------------------------------------------------------------------------
 // PIPELINE ROW
 // ---------------------------------------------------------------------------
-function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
+function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
   const [status, setStatus] = useState(action?.status || 'new')
   const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
   const [notes, setNotes] = useState(action?.notes || '')
@@ -420,39 +436,43 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
 
   return (
     <>
-      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }} onClick={() => setExpanded(!expanded)}>
+      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}`, flexWrap: isMobile ? 'wrap' : 'nowrap' }} onClick={() => setExpanded(!expanded)}>
         <div style={styles.pipelinePhoto}>
           {photo
-            ? <img src={photo} alt={lead.title} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px' }} />
-            : <div style={{ width: '60px', height: '60px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
+            ? <img src={photo} alt={lead.title} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '6px' }} />
+            : <div style={{ width: '56px', height: '56px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
           }
         </div>
-        <div style={{ flex: 2 }}>
-          <p style={{ color: '#fff', fontWeight: '600', fontSize: '14px', margin: '0 0 4px 0' }}>{lead.title}</p>
-          <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
+        <div style={{ flex: 2, minWidth: isMobile ? '150px' : 'auto' }}>
+          <p style={{ color: '#fff', fontWeight: '600', fontSize: '13px', margin: '0 0 3px 0' }}>{lead.title}</p>
+          <p style={{ color: '#888', fontSize: '11px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
         </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ color: '#fff', fontWeight: '700', fontSize: '15px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
-          <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 6px', fontSize: '10px', color: '#fff', fontWeight: '700', marginTop: '4px' }}>{platformLabel}</div>
+        <div style={{ flex: isMobile ? 'none' : 1 }}>
+          <p style={{ color: '#fff', fontWeight: '700', fontSize: '14px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
+          <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 5px', fontSize: '9px', color: '#fff', fontWeight: '700', marginTop: '3px' }}>{platformLabel}</div>
         </div>
-        <div style={{ flex: 1 }}>
-          <span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', fontWeight: '700' }}>{statusLabels[status]}</span>
-        </div>
-        <div style={{ flex: 1 }}>
-          {followUpDate
-            ? <p style={{ color: getFollowUpColor(), fontSize: '12px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p>
-            : <p style={{ color: '#555', fontSize: '12px', margin: 0 }}>No follow up set</p>
-          }
-        </div>
-        <div style={{ flex: 2 }}>
-          <p style={{ color: '#888', fontSize: '12px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }}>{notes || '+ Add notes'}</p>
-        </div>
+        {!isMobile && (
+          <>
+            <div style={{ flex: 1 }}>
+              <span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '3px 8px', fontSize: '10px', fontWeight: '700' }}>{statusLabels[status]}</span>
+            </div>
+            <div style={{ flex: 1 }}>
+              {followUpDate
+                ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p>
+                : <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>No follow up</p>
+              }
+            </div>
+            <div style={{ flex: 2 }}>
+              <p style={{ color: '#888', fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{notes || '+ Add notes'}</p>
+            </div>
+          </>
+        )}
         <div style={{ color: '#555', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</div>
       </div>
       {expanded && (
-        <div style={styles.pipelineExpanded}>
-          <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-            <div>
+        <div style={{ ...styles.pipelineExpanded, paddingLeft: isMobile ? '24px' : '100px' }}>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ width: '100%' }}>
               <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Status</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
@@ -499,14 +519,11 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange }) {
 // ---------------------------------------------------------------------------
 // LEADS PAGE
 // ---------------------------------------------------------------------------
-function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
+function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMobile }) {
   const [activeTab, setActiveTab] = useState('new')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [platformFilter, setPlatformFilter] = useState('all')
-  const [minYear, setMinYear] = useState('')
-  const [maxYear, setMaxYear] = useState('')
-  const [maxDaysAgo, setMaxDaysAgo] = useState('')
   const [sortBy, setSortBy] = useState('newest_found')
 
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
@@ -519,70 +536,48 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
       if (minPrice && lead.price < parseInt(minPrice)) return false
       if (maxPrice && lead.price > parseInt(maxPrice)) return false
       if (platformFilter !== 'all' && lead.platform !== platformFilter) return false
-      if (minYear && lead.boat_year && parseInt(lead.boat_year) < parseInt(minYear)) return false
-      if (maxYear && lead.boat_year && parseInt(lead.boat_year) > parseInt(maxYear)) return false
-      if (maxDaysAgo && lead.listing_date) {
-        const days = Math.floor((new Date() - new Date(lead.listing_date)) / (1000 * 60 * 60 * 24))
-        if (days > parseInt(maxDaysAgo)) return false
-      }
       return true
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'price_low': return (a.price || 0) - (b.price || 0)
         case 'price_high': return (b.price || 0) - (a.price || 0)
-        case 'newest_listed': return new Date(b.listing_date || 0) - new Date(a.listing_date || 0)
-        case 'oldest_listed': return new Date(a.listing_date || 0) - new Date(b.listing_date || 0)
         case 'most_discounted': return (b.discount_percent || 0) - (a.discount_percent || 0)
         case 'newest_found': return new Date(b.posted_at) - new Date(a.posted_at)
-        case 'oldest_found': return new Date(a.posted_at) - new Date(b.posted_at)
         default: return 0
       }
     })
 
   return (
     <div style={styles.pageContent}>
-      <div style={styles.filterBar}>
+      <div style={{ ...styles.filterBar, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: isMobile ? '12px 16px' : '16px 32px' }}>
         <div style={styles.tabs}>
           {[{ id: 'new', label: 'New Leads' }, { id: 'not_interested', label: 'Not Interested' }].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ ...styles.tab, background: activeTab === tab.id ? '#2563eb' : 'transparent', color: activeTab === tab.id ? '#fff' : '#888' }}>
+              style={{ ...styles.tab, background: activeTab === tab.id ? '#2563eb' : 'transparent', color: activeTab === tab.id ? '#fff' : '#888', padding: isMobile ? '6px 12px' : '8px 16px', fontSize: isMobile ? '12px' : '13px' }}>
               {tab.label}
             </button>
           ))}
         </div>
-        <div style={styles.filtersRight}>
-          <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
-            <option value="newest_found">Sort: Newest Found</option>
-            <option value="oldest_found">Sort: Oldest Found</option>
-            <option value="price_low">Sort: Price Low → High</option>
-            <option value="price_high">Sort: Price High → Low</option>
-            <option value="newest_listed">Sort: Newest Listed</option>
-            <option value="oldest_listed">Sort: Oldest Listed</option>
-            <option value="most_discounted">Sort: Most Discounted</option>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: isMobile ? '8px' : '0' }}>
+          <select style={{ ...styles.filterSelect, fontSize: isMobile ? '12px' : '13px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="newest_found">Newest</option>
+            <option value="price_low">Price ↑</option>
+            <option value="price_high">Price ↓</option>
+            <option value="most_discounted">Most Discounted</option>
           </select>
-          <select style={styles.filterSelect} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
+          <select style={{ ...styles.filterSelect, fontSize: isMobile ? '12px' : '13px' }} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
             <option value="craigslist">Craigslist</option>
             <option value="offerup">OfferUp</option>
           </select>
-          <input style={styles.filterInput} type="number" placeholder="Min price" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
-          <input style={styles.filterInput} type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
-          <input style={styles.filterInput} type="number" placeholder="Min year" value={minYear} onChange={e => setMinYear(e.target.value)} />
-          <input style={styles.filterInput} type="number" placeholder="Max year" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
-          <select style={styles.filterSelect} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
-            <option value="">Any age</option>
-            <option value="1">Today</option>
-            <option value="3">Last 3 days</option>
-            <option value="7">Last 7 days</option>
-            <option value="14">Last 14 days</option>
-            <option value="30">Last 30 days</option>
-          </select>
+          <input style={{ ...styles.filterInput, width: isMobile ? '90px' : '100px' }} type="number" placeholder="Min $" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+          <input style={{ ...styles.filterInput, width: isMobile ? '90px' : '100px' }} type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
         </div>
       </div>
       {loading ? <p style={styles.loading}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={styles.loading}>No leads match your filters.</p> : (
-        <div style={styles.grid}>
+        <div style={{ ...styles.grid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', padding: isMobile ? '16px' : '32px', gap: isMobile ? '16px' : '24px' }}>
           {filteredLeads.map(lead => (
             <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
           ))}
@@ -595,7 +590,7 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading }) {
 // ---------------------------------------------------------------------------
 // PIPELINE PAGE
 // ---------------------------------------------------------------------------
-function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) {
+function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, isMobile }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('newest_found')
   const [search, setSearch] = useState('')
@@ -610,31 +605,25 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
       if (statusFilter !== 'all' && status !== statusFilter) return false
       if (search) {
         const s = search.toLowerCase()
-        const match = lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s)
-        if (!match) return false
+        if (!lead.title?.toLowerCase().includes(s) && !lead.location?.toLowerCase().includes(s)) return false
       }
       return true
     })
     .sort((a, b) => {
-      switch (sortBy) {
-        case 'price_low': return (a.price || 0) - (b.price || 0)
-        case 'price_high': return (b.price || 0) - (a.price || 0)
-        case 'follow_up_date': return (getFollowUpDate(a) || '9999').localeCompare(getFollowUpDate(b) || '9999')
-        case 'newest_found': return new Date(b.posted_at) - new Date(a.posted_at)
-        default: return 0
-      }
+      if (sortBy === 'follow_up_date') return (getFollowUpDate(a) || '9999').localeCompare(getFollowUpDate(b) || '9999')
+      if (sortBy === 'price_high') return (b.price || 0) - (a.price || 0)
+      return new Date(b.posted_at) - new Date(a.posted_at)
     })
 
   const countByStatus = (s) => leads.filter(l => getStatus(l) === s).length
   const overdueCount = leads.filter(l => {
     const fu = getFollowUpDate(l)
-    if (!fu) return false
-    return fu < new Date().toISOString().split('T')[0]
+    return fu && fu < new Date().toISOString().split('T')[0]
   }).length
 
   return (
     <div style={styles.pageContent}>
-      <div style={styles.pipelineStats}>
+      <div style={{ ...styles.pipelineStats, padding: isMobile ? '16px' : '20px 32px', gap: isMobile ? '16px' : '24px', flexWrap: 'wrap' }}>
         {[
           { label: 'Reached Out', value: countByStatus('reached_out'), color: '#16a34a' },
           { label: 'Follow Up', value: countByStatus('follow_up'), color: '#d97706' },
@@ -642,33 +631,32 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
           { label: 'Overdue', value: overdueCount, color: '#dc2626' },
         ].map(s => (
           <div key={s.label} style={styles.pipelineStat}>
-            <span style={{ ...styles.pipelineStatNum, color: s.color }}>{s.value}</span>
+            <span style={{ ...styles.pipelineStatNum, color: s.color, fontSize: isMobile ? '20px' : '24px' }}>{s.value}</span>
             <span style={styles.pipelineStatLabel}>{s.label}</span>
           </div>
         ))}
       </div>
-      <div style={{ ...styles.filterBar, borderTop: '1px solid #2a2a2a' }}>
-        <div style={styles.tabs}>
-          {[{ id: 'all', label: 'All Active' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
+      <div style={{ ...styles.filterBar, padding: isMobile ? '12px 16px' : '16px 32px', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center' }}>
+        <div style={{ ...styles.tabs, flexWrap: 'wrap', gap: '6px' }}>
+          {[{ id: 'all', label: 'All' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
             <button key={tab.id} onClick={() => setStatusFilter(tab.id)}
-              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888' }}>
+              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888', padding: '6px 12px', fontSize: '12px' }}>
               {tab.label}
             </button>
           ))}
         </div>
-        <div style={styles.filtersRight}>
-          <input style={{ ...styles.filterInput, width: '180px' }} type="text" placeholder="🔍 Search pipeline..." value={search} onChange={e => setSearch(e.target.value)} />
+        <div style={{ display: 'flex', gap: '8px', marginTop: isMobile ? '8px' : '0' }}>
+          <input style={{ ...styles.filterInput, width: '160px' }} type="text" placeholder="🔍 Search..." value={search} onChange={e => setSearch(e.target.value)} />
           <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
-            <option value="newest_found">Sort: Newest Found</option>
-            <option value="follow_up_date">Sort: Follow Up Date</option>
-            <option value="price_high">Sort: Price High → Low</option>
-            <option value="price_low">Sort: Price Low → High</option>
+            <option value="newest_found">Newest</option>
+            <option value="follow_up_date">Follow Up Date</option>
+            <option value="price_high">Price ↓</option>
           </select>
         </div>
       </div>
-      {pipelineLeads.length > 0 && (
+      {!isMobile && pipelineLeads.length > 0 && (
         <div style={styles.pipelineHeader}>
-          <div style={{ width: '60px' }} />
+          <div style={{ width: '56px' }} />
           <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Listing</div>
           <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Price</div>
           <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Status</div>
@@ -677,15 +665,15 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
           <div style={{ width: '20px' }} />
         </div>
       )}
-      {loading ? <p style={styles.loading}>Loading pipeline...</p> : pipelineLeads.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '80px 60px' }}>
-          <p style={{ color: '#888', fontSize: '16px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
-          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
+      {loading ? <p style={styles.loading}>Loading...</p> : pipelineLeads.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+          <p style={{ color: '#888', fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
+          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to see them here.</p>
         </div>
       ) : (
         <div style={styles.pipelineList}>
           {pipelineLeads.map(lead => (
-            <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
+            <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} isMobile={isMobile} />
           ))}
         </div>
       )}
@@ -696,7 +684,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading }) 
 // ---------------------------------------------------------------------------
 // ANALYTICS PAGE
 // ---------------------------------------------------------------------------
-function AnalyticsPage({ leads, actions }) {
+function AnalyticsPage({ leads, actions, isMobile }) {
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
   const total = leads.length
   const contacted = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
@@ -709,33 +697,33 @@ function AnalyticsPage({ leads, actions }) {
 
   return (
     <div style={styles.pageContent}>
-      <div style={{ padding: '32px' }}>
-        <h2 style={{ color: '#fff', fontSize: '22px', margin: '0 0 32px 0' }}>Analytics</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+      <div style={{ padding: isMobile ? '16px' : '32px' }}>
+        <h2 style={{ color: '#fff', fontSize: isMobile ? '18px' : '22px', margin: '0 0 24px 0' }}>Analytics</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
           {[
             { label: 'Total Leads', value: total, color: '#2563eb' },
             { label: 'Contact Rate', value: `${contactRate}%`, color: '#16a34a' },
             { label: 'Connected', value: connected, color: '#7c3aed' },
             { label: 'Not Interested', value: notInterested, color: '#dc2626' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a' }}>
-              <p style={{ color: stat.color, fontSize: '32px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
-              <p style={{ color: '#888', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
+            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '24px', border: '1px solid #2a2a2a' }}>
+              <p style={{ color: stat.color, fontSize: isMobile ? '24px' : '32px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
+              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
             </div>
           ))}
         </div>
-        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a', marginBottom: '24px' }}>
-          <h3 style={{ color: '#fff', fontSize: '16px', margin: '0 0 20px 0' }}>Leads by Platform</h3>
-          <div style={{ display: 'flex', gap: '32px' }}>
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '24px', border: '1px solid #2a2a2a', marginBottom: '16px' }}>
+          <h3 style={{ color: '#fff', fontSize: '15px', margin: '0 0 16px 0' }}>Leads by Platform</h3>
+          <div style={{ display: 'flex', gap: isMobile ? '20px' : '32px' }}>
             {[{ label: 'Facebook', value: facebookLeads, color: '#1d4ed8' }, { label: 'Craigslist', value: craigslistLeads, color: '#16a34a' }, { label: 'OfferUp', value: offerupLeads, color: '#d97706' }].map(p => (
               <div key={p.label}>
-                <p style={{ color: p.color, fontSize: '28px', fontWeight: '700', margin: '0 0 4px 0' }}>{p.value}</p>
+                <p style={{ color: p.color, fontSize: isMobile ? '22px' : '28px', fontWeight: '700', margin: '0 0 4px 0' }}>{p.value}</p>
                 <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{p.label}</p>
               </div>
             ))}
           </div>
         </div>
-        <p style={{ color: '#555', fontSize: '13px' }}>More analytics coming soon — activity tracking, follow up completion rate, and lead source ROI.</p>
+        <p style={{ color: '#555', fontSize: '12px' }}>More analytics coming soon.</p>
       </div>
     </div>
   )
@@ -750,6 +738,7 @@ function Dashboard({ user }) {
   const [loading, setLoading] = useState(true)
   const [activePage, setActivePage] = useState('leads')
   const [search, setSearch] = useState('')
+  const isMobile = useIsMobile()
 
   const brokerEmail = user.email
 
@@ -782,53 +771,52 @@ function Dashboard({ user }) {
   const filteredLeads = search
     ? leads.filter(lead => {
       const s = search.toLowerCase()
-      return lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s) || lead.boat_model?.toLowerCase().includes(s) || lead.boat_year?.toLowerCase().includes(s)
+      return lead.title?.toLowerCase().includes(s) || lead.location?.toLowerCase().includes(s) || lead.boat_make?.toLowerCase().includes(s)
     })
     : leads
 
   return (
-    <div style={styles.dashboardShell}>
-      <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} />
+    <div style={{ ...styles.dashboardShell, flexDirection: isMobile ? 'column' : 'row' }}>
+      {!isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={false} />}
 
-      <div style={styles.dashboardMain}>
+      <div style={{ ...styles.dashboardMain, paddingBottom: isMobile ? '60px' : '0' }}>
         {/* Top bar */}
-        <div style={styles.topBar}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '32px', objectFit: 'contain' }} />
+        <div style={{ ...styles.topBar, padding: isMobile ? '10px 16px' : '12px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '28px' : '32px', objectFit: 'contain' }} />
             <input
-              style={{ ...styles.filterInput, width: '240px' }}
+              style={{ ...styles.filterInput, width: isMobile ? '160px' : '240px' }}
               type="text"
-              placeholder="🔍 Search listings..."
+              placeholder="🔍 Search..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ color: '#555', fontSize: '13px' }}>{user.email}</span>
-          </div>
+          <span style={{ color: '#555', fontSize: '12px', display: isMobile ? 'none' : 'block' }}>{user.email}</span>
         </div>
 
         {/* Stats bar */}
-        <div style={styles.statsBar}>
+        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '16px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto' }}>
           {[
-            { label: 'New Leads', value: newCount, color: '#2563eb' },
+            { label: 'New', value: newCount, color: '#2563eb' },
             { label: 'Reached Out', value: reachedOutCount, color: '#16a34a' },
             { label: 'Follow Up', value: followUpCount, color: '#d97706' },
             { label: 'Connected', value: connectedCount, color: '#7c3aed' },
             { label: 'Not Interested', value: notInterestedCount, color: '#dc2626' },
           ].map(s => (
-            <div key={s.label} style={styles.stat}>
-              <span style={{ ...styles.statNumber, color: s.color }}>{s.value}</span>
-              <span style={styles.statLabel}>{s.label}</span>
+            <div key={s.label} style={{ ...styles.stat, flexShrink: 0 }}>
+              <span style={{ ...styles.statNumber, color: s.color, fontSize: isMobile ? '18px' : '22px' }}>{s.value}</span>
+              <span style={{ ...styles.statLabel, fontSize: isMobile ? '9px' : '11px' }}>{s.label}</span>
             </div>
           ))}
         </div>
 
-        {/* Page content */}
-        {activePage === 'leads' && <LeadsPage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} />}
-        {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} />}
-        {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} />}
+        {activePage === 'leads' && <LeadsPage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
+        {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
+        {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} isMobile={isMobile} />}
       </div>
+
+      {isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={true} />}
     </div>
   )
 }
@@ -876,101 +864,100 @@ export default function App() {
 // ---------------------------------------------------------------------------
 const styles = {
   landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
-  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 60px', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
-  navButton: { background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px', color: '#fff', padding: '8px 20px', cursor: 'pointer', fontSize: '13px' },
+  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
+  navButton: { background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px', color: '#fff', padding: '8px 16px', cursor: 'pointer', fontSize: '13px' },
   hero: { display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
-  heroContent: { maxWidth: '720px', position: 'relative', zIndex: 1 },
-  heroBadge: { display: 'inline-block', background: 'rgba(37,99,235,0.2)', border: '1px solid #2563eb', color: '#60a5fa', fontSize: '12px', fontWeight: '600', padding: '4px 14px', borderRadius: '20px', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  heroTitle: { fontSize: '52px', fontWeight: '800', lineHeight: '1.1', margin: '0 0 24px 0', color: '#ffffff' },
-  heroSubtitle: { fontSize: '18px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', margin: '0 0 40px 0' },
-  heroButtons: { display: 'flex', gap: '16px', justifyContent: 'center' },
-  heroCta: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 32px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' },
-  heroSecondary: { background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '14px 32px', fontSize: '16px', cursor: 'pointer' },
-  section: { padding: '80px 60px', borderTop: '1px solid #1a1a1a' },
-  sectionTitle: { fontSize: '32px', fontWeight: '700', textAlign: 'center', margin: '0 0 60px 0' },
-  steps: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '40px', maxWidth: '900px', margin: '0 auto' },
+  heroContent: { position: 'relative', zIndex: 1 },
+  heroBadge: { display: 'inline-block', background: 'rgba(37,99,235,0.2)', border: '1px solid #2563eb', color: '#60a5fa', fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: '20px', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  heroTitle: { fontWeight: '800', lineHeight: '1.1', margin: '0 0 20px 0', color: '#ffffff' },
+  heroSubtitle: { color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', margin: '0 0 32px 0' },
+  heroButtons: { display: 'flex', gap: '12px', justifyContent: 'center' },
+  heroCta: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' },
+  heroSecondary: { background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '14px 28px', fontSize: '15px', cursor: 'pointer' },
+  section: { borderTop: '1px solid #1a1a1a' },
+  sectionTitle: { fontSize: '28px', fontWeight: '700', textAlign: 'center', margin: '0 0 48px 0' },
+  steps: { display: 'grid', maxWidth: '900px', margin: '0 auto' },
   step: { textAlign: 'center' },
-  stepNumber: { fontSize: '48px', fontWeight: '800', color: '#1a1a1a', marginBottom: '16px' },
-  stepTitle: { fontSize: '20px', fontWeight: '700', marginBottom: '12px', color: '#ffffff' },
+  stepNumber: { fontSize: '40px', fontWeight: '800', color: '#1a1a1a', marginBottom: '12px' },
+  stepTitle: { fontSize: '18px', fontWeight: '700', marginBottom: '10px', color: '#ffffff' },
   stepText: { fontSize: '14px', color: '#888', lineHeight: '1.7' },
-  valueSection: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', padding: '80px 60px', borderTop: '1px solid #1a1a1a' },
-  valueCard: { background: '#1a1a1a', borderRadius: '12px', padding: '32px 24px', border: '1px solid #2a2a2a' },
-  valueIcon: { fontSize: '32px', marginBottom: '16px' },
-  valueTitle: { fontSize: '16px', fontWeight: '700', marginBottom: '12px', color: '#ffffff' },
-  valueText: { fontSize: '14px', color: '#888', lineHeight: '1.7', margin: 0 },
-  ctaSection: { textAlign: 'center', padding: '100px 60px', borderTop: '1px solid #1a1a1a' },
-  ctaTitle: { fontSize: '40px', fontWeight: '800', margin: '0 0 16px 0' },
-  ctaSubtitle: { fontSize: '16px', color: '#888', margin: '0 0 40px 0' },
-  footer: { padding: '32px 60px', borderTop: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  footerText: { color: '#555', fontSize: '13px', margin: 0 },
-  authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif" },
-  authBox: { background: '#1a1a1a', padding: '40px', borderRadius: '12px', width: '380px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid #2a2a2a' },
-  authTitle: { color: '#ffffff', fontSize: '22px', margin: 0, textAlign: 'center' },
+  valueSection: { display: 'grid', gap: '16px', borderTop: '1px solid #1a1a1a' },
+  valueCard: { background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a' },
+  valueIcon: { fontSize: '28px', marginBottom: '12px' },
+  valueTitle: { fontSize: '15px', fontWeight: '700', marginBottom: '10px', color: '#ffffff' },
+  valueText: { fontSize: '13px', color: '#888', lineHeight: '1.7', margin: 0 },
+  ctaSection: { textAlign: 'center', borderTop: '1px solid #1a1a1a' },
+  ctaTitle: { fontWeight: '800', margin: '0 0 14px 0' },
+  ctaSubtitle: { fontSize: '15px', color: '#888', margin: '0 0 32px 0' },
+  footer: { borderTop: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  footerText: { color: '#555', fontSize: '12px', margin: 0 },
+  authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' },
+  authBox: { background: '#1a1a1a', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid #2a2a2a' },
+  authTitle: { color: '#ffffff', fontSize: '20px', margin: 0, textAlign: 'center' },
   authSwitch: { color: '#888', fontSize: '13px', textAlign: 'center', margin: 0 },
   authLink: { color: '#2563eb', cursor: 'pointer' },
-  input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 16px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
-  button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '16px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
+  input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 14px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
+  button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '15px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
   dashboardShell: { display: 'flex', minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif" },
-  dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  topBar: { background: '#1a1a1a', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '16px' },
-  statsBar: { display: 'flex', gap: '32px', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', background: '#111' },
-  stat: { display: 'flex', flexDirection: 'column', gap: '2px' },
-  statNumber: { fontSize: '22px', fontWeight: '700' },
-  statLabel: { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 },
+  topBar: { background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px' },
+  statsBar: { display: 'flex', borderBottom: '1px solid #2a2a2a', background: '#111' },
+  stat: { display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 },
+  statNumber: { fontWeight: '700' },
+  statLabel: { color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
   sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0 },
   sidebarLogoWrap: { padding: '8px 14px 20px 14px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px', height: '44px', display: 'flex', alignItems: 'center' },
   sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 6px' },
-  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif' " },
-  sidebarLogout: { margin: '8px 6px 4px 6px', padding: '10px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center', gap: '0px' },
-  pageContent: { flex: 1, overflow: 'auto', color: '#fff' },
-  filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 32px', borderBottom: '1px solid #2a2a2a', gap: '16px', flexWrap: 'wrap' },
-  tabs: { display: 'flex', gap: '8px' },
-  tab: { border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 16px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
+  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif" },
+  sidebarLogout: { margin: '8px 6px 4px 6px', padding: '10px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center' },
+  bottomNav: { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#111', borderTop: '1px solid #1a1a1a', display: 'flex', zIndex: 100 },
+  bottomNavItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
+  pageContent: { flex: 1, overflowY: 'auto', color: '#fff' },
+  filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px', flexWrap: 'wrap' },
+  tabs: { display: 'flex', gap: '6px' },
+  tab: { border: '1px solid #3a3a3a', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   filtersRight: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' },
-  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 12px', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 12px', color: '#ffffff', fontSize: '13px', width: '100px', outline: 'none' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', padding: '32px' },
+  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 10px', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
+  filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 10px', color: '#ffffff', fontSize: '13px', outline: 'none' },
+  grid: { display: 'grid', gap: '16px' },
   card: { background: '#1a1a1a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column' },
-  platformBanner: { padding: '4px 12px', fontSize: '11px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  alertBanner: { background: '#111', borderBottom: '1px solid #2a2a2a', padding: '8px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' },
-  alertPill: { background: '#7f1d1d', color: '#fca5a5', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' },
-  pricePill: { background: '#1e3a5f', color: '#93c5fd', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' },
+  platformBanner: { padding: '4px 12px', fontSize: '10px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' },
+  alertBanner: { background: '#111', borderBottom: '1px solid #2a2a2a', padding: '6px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' },
+  alertPill: { background: '#7f1d1d', color: '#fca5a5', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' },
+  pricePill: { background: '#1e3a5f', color: '#93c5fd', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' },
   cardImage: { width: '100%', height: '200px', objectFit: 'cover' },
   photoBtn: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', fontSize: '24px', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   photoCounter: { position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '10px' },
-  cardBody: { padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' },
-  cardTitle: { color: '#ffffff', fontSize: '15px', margin: 0, fontWeight: '600' },
+  cardBody: { padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' },
+  cardTitle: { color: '#ffffff', fontSize: '14px', margin: 0, fontWeight: '600' },
   price: { color: '#ffffff', fontSize: '20px', fontWeight: '700' },
-  checklist: { background: '#2a2a2a', borderRadius: '8px', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '4px' },
-  checkItem: { display: 'flex', gap: '8px', fontSize: '13px' },
-  checkLabel: { color: '#888', minWidth: '100px' },
+  checklist: { background: '#2a2a2a', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '4px' },
+  checkItem: { display: 'flex', gap: '8px', fontSize: '12px' },
+  checkLabel: { color: '#888', minWidth: '90px' },
   checkValue: { color: '#ffffff', fontWeight: '500' },
-  cardMeta: { color: '#888', fontSize: '13px', margin: 0 },
-  descriptionToggle: { background: 'transparent', border: '1px solid #3a3a3a', borderRadius: '6px', color: '#888', padding: '4px 10px', fontSize: '11px', cursor: 'pointer', width: '100%', textAlign: 'left' },
-  descriptionBox: { background: '#2a2a2a', borderRadius: '6px', padding: '10px 12px', marginTop: '6px' },
-  descriptionText: { color: '#aaa', fontSize: '12px', lineHeight: '1.6', margin: 0, whiteSpace: 'pre-wrap' },
-  link: { color: '#2563eb', fontSize: '13px', textDecoration: 'none', fontWeight: '600', marginTop: '4px' },
+  cardMeta: { color: '#888', fontSize: '12px', margin: 0 },
+  link: { color: '#2563eb', fontSize: '13px', textDecoration: 'none', fontWeight: '600' },
   notesSection: { marginTop: '4px' },
   notesDisplay: { cursor: 'pointer', borderRadius: '6px', padding: '6px 8px', border: '1px dashed #3a3a3a' },
-  notesText: { color: '#ccc', fontSize: '13px', margin: 0 },
-  notesPlaceholder: { color: '#555', fontSize: '13px', margin: 0 },
-  notesInput: { width: '100%', background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px', color: '#ffffff', fontSize: '13px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  notesText: { color: '#ccc', fontSize: '12px', margin: 0 },
+  notesPlaceholder: { color: '#555', fontSize: '12px', margin: 0 },
+  notesInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px', color: '#ffffff', fontSize: '13px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
   notesButtons: { display: 'flex', gap: '8px', marginTop: '6px' },
-  statusRow: { display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' },
-  statusBtn: { border: '1px solid', borderRadius: '6px', padding: '4px 10px', fontSize: '11px', cursor: 'pointer', fontWeight: '600' },
+  statusRow: { display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '6px' },
+  statusBtn: { border: '1px solid', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' },
   followUpRow: { display: 'flex', gap: '8px', alignItems: 'center' },
-  dateInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 10px', color: '#ffffff', fontSize: '13px', outline: 'none' },
+  dateInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '12px', outline: 'none' },
   saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
   loading: { color: '#888', textAlign: 'center', padding: '60px' },
-  pipelineStats: { display: 'flex', gap: '24px', padding: '20px 32px', borderBottom: '1px solid #2a2a2a' },
+  pipelineStats: { display: 'flex', borderBottom: '1px solid #2a2a2a' },
   pipelineStat: { display: 'flex', flexDirection: 'column', gap: '2px' },
-  pipelineStatNum: { fontSize: '24px', fontWeight: '700' },
-  pipelineStatLabel: { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  pipelineHeader: { display: 'flex', alignItems: 'center', gap: '16px', padding: '12px 24px', borderBottom: '1px solid #1a1a1a' },
+  pipelineStatNum: { fontWeight: '700' },
+  pipelineStatLabel: { fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  pipelineHeader: { display: 'flex', alignItems: 'center', gap: '16px', padding: '10px 24px', borderBottom: '1px solid #1a1a1a' },
   pipelineList: { display: 'flex', flexDirection: 'column' },
-  pipelineRow: { display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 24px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer' },
+  pipelineRow: { display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 20px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer' },
   pipelinePhoto: { flexShrink: 0 },
-  pipelineExpanded: { background: '#111', padding: '20px 24px 24px 100px', borderBottom: '1px solid #1a1a1a' },
+  pipelineExpanded: { background: '#111', padding: '16px 20px 20px', borderBottom: '1px solid #1a1a1a' },
 }
