@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
-// ---------------------------------------------------------------------------
-// MOBILE HOOK
-// ---------------------------------------------------------------------------
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   useEffect(() => {
@@ -13,6 +11,59 @@ function useIsMobile() {
     return () => window.removeEventListener('resize', handler)
   }, [])
   return isMobile
+}
+
+// ---------------------------------------------------------------------------
+// ICONS
+// ---------------------------------------------------------------------------
+function IconLeads({ color = '#888', size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function IconPipeline({ color = '#888', size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  )
+}
+
+function IconAnalytics({ color = '#888', size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10" />
+      <line x1="12" y1="20" x2="12" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="14" />
+      <line x1="2" y1="20" x2="22" y2="20" />
+    </svg>
+  )
+}
+
+function IconSignOut({ color = '#555', size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
+}
+
+function IconUser({ color = '#888', size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -161,8 +212,10 @@ function SignupPage() {
       <div style={styles.authBox}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
         <h2 style={styles.authTitle}>You're all set 🚤</h2>
-        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Your account is created. Log in to see your leads.</p>
-        <button style={styles.button} onClick={() => navigate('/login')}>Go to Login</button>
+        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>
+          Welcome to YachtWatch. Your market is configured and leads will start hitting your inbox at 9am and 5pm daily. Log in to see what's already there.
+        </p>
+        <button style={styles.button} onClick={() => navigate('/login')}>Go to Dashboard</button>
       </div>
     </div>
   )
@@ -192,40 +245,71 @@ function SignupPage() {
 }
 
 // ---------------------------------------------------------------------------
+// PROFILE DROPDOWN
+// ---------------------------------------------------------------------------
+function ProfileDropdown({ user, onLogout }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ background: open ? '#2a2a2a' : 'transparent', border: '1px solid #2a2a2a', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <IconUser color={open ? '#fff' : '#888'} size={16} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '44px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', minWidth: '220px', zIndex: 100, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+          <div style={{ padding: '14px 16px', borderBottom: '1px solid #2a2a2a' }}>
+            <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>My Account</p>
+            <p style={{ color: '#555', fontSize: '12px', margin: 0, wordBreak: 'break-all' }}>{user.email}</p>
+          </div>
+          <div style={{ padding: '6px' }}>
+            <button
+              onClick={() => { setOpen(false); onLogout() }}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'transparent', border: 'none', borderRadius: '6px', color: '#dc2626', cursor: 'pointer', fontSize: '13px', fontFamily: "'Inter', sans-serif", textAlign: 'left' }}
+            >
+              <IconSignOut color="#dc2626" size={14} />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // SIDEBAR / BOTTOM NAV
 // ---------------------------------------------------------------------------
 function Sidebar({ activePage, setActivePage, onLogout, isMobile }) {
   const [hovered, setHovered] = useState(false)
 
   const navItems = [
-    { id: 'leads', label: 'Leads', icon: '🔍' },
-    { id: 'pipeline', label: 'Pipeline', icon: '📋' },
-    { id: 'analytics', label: 'Analytics', icon: '📊' },
+    { id: 'leads', label: 'Leads', Icon: IconLeads },
+    { id: 'pipeline', label: 'Pipeline', Icon: IconPipeline },
+    { id: 'analytics', label: 'Analytics', Icon: IconAnalytics },
   ]
 
   if (isMobile) {
     return (
       <div style={styles.bottomNav}>
-        {navItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActivePage(item.id)}
-            style={{
-              ...styles.bottomNavItem,
-              color: activePage === item.id ? '#2563eb' : '#555',
-              borderTop: activePage === item.id ? '2px solid #2563eb' : '2px solid transparent',
-            }}
-          >
-            <span style={{ fontSize: '20px' }}>{item.icon}</span>
-            <span style={{ fontSize: '10px', marginTop: '2px' }}>{item.label}</span>
+        {navItems.map(({ id, label, Icon }) => (
+          <button key={id} onClick={() => setActivePage(id)} style={{ ...styles.bottomNavItem, color: activePage === id ? '#2563eb' : '#555', borderTop: activePage === id ? '2px solid #2563eb' : '2px solid transparent' }}>
+            <Icon color={activePage === id ? '#2563eb' : '#555'} size={20} />
+            <span style={{ fontSize: '10px', marginTop: '2px' }}>{label}</span>
           </button>
         ))}
-        <button
-          style={{ ...styles.bottomNavItem, color: '#555', borderTop: '2px solid transparent' }}
-          onClick={onLogout}
-        >
-          <span style={{ fontSize: '20px' }}>🚪</span>
-          <span style={{ fontSize: '10px', marginTop: '2px' }}>Sign Out</span>
+        <button style={{ ...styles.bottomNavItem, color: '#555', borderTop: '2px solid transparent' }} onClick={onLogout}>
+          <IconSignOut color="#555" size={20} />
+          <span style={{ fontSize: '10px', marginTop: '2px' }}>Out</span>
         </button>
       </div>
     )
@@ -241,25 +325,15 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile }) {
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease', whiteSpace: 'nowrap' }} />
       </div>
       <nav style={styles.sidebarNav}>
-        {navItems.map(item => (
-          <button
-            key={item.id}
-            onClick={() => setActivePage(item.id)}
-            style={{
-              ...styles.sidebarItem,
-              background: activePage === item.id ? '#1e3a5f' : 'transparent',
-              color: activePage === item.id ? '#60a5fa' : '#888',
-              borderLeft: activePage === item.id ? '3px solid #2563eb' : '3px solid transparent',
-              justifyContent: hovered ? 'flex-start' : 'center',
-            }}
-          >
-            <span style={{ fontSize: '16px', flexShrink: 0 }}>{item.icon}</span>
-            {hovered && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{item.label}</span>}
+        {navItems.map(({ id, label, Icon }) => (
+          <button key={id} onClick={() => setActivePage(id)} style={{ ...styles.sidebarItem, background: activePage === id ? '#1e3a5f' : 'transparent', color: activePage === id ? '#60a5fa' : '#888', borderLeft: activePage === id ? '3px solid #2563eb' : '3px solid transparent', justifyContent: hovered ? 'flex-start' : 'center' }}>
+            <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><Icon color={activePage === id ? '#60a5fa' : '#888'} size={17} /></span>
+            {hovered && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', marginLeft: '10px' }}>{label}</span>}
           </button>
         ))}
       </nav>
       <button style={{ ...styles.sidebarLogout, justifyContent: hovered ? 'flex-start' : 'center' }} onClick={onLogout}>
-        <span style={{ flexShrink: 0 }}>🚪</span>
+        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><IconSignOut color="#555" size={15} /></span>
         {hovered && <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>Sign Out</span>}
       </button>
     </div>
@@ -436,18 +510,18 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
 
   return (
     <>
-      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}`, flexWrap: isMobile ? 'wrap' : 'nowrap' }} onClick={() => setExpanded(!expanded)}>
+      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }} onClick={() => setExpanded(!expanded)}>
         <div style={styles.pipelinePhoto}>
           {photo
             ? <img src={photo} alt={lead.title} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '6px' }} />
             : <div style={{ width: '56px', height: '56px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>
           }
         </div>
-        <div style={{ flex: 2, minWidth: isMobile ? '150px' : 'auto' }}>
+        <div style={{ flex: 2, minWidth: isMobile ? '120px' : 'auto' }}>
           <p style={{ color: '#fff', fontWeight: '600', fontSize: '13px', margin: '0 0 3px 0' }}>{lead.title}</p>
           <p style={{ color: '#888', fontSize: '11px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
         </div>
-        <div style={{ flex: isMobile ? 'none' : 1 }}>
+        <div style={{ flex: 1 }}>
           <p style={{ color: '#fff', fontWeight: '700', fontSize: '14px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
           <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 5px', fontSize: '9px', color: '#fff', fontWeight: '700', marginTop: '3px' }}>{platformLabel}</div>
         </div>
@@ -470,7 +544,7 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
         <div style={{ color: '#555', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</div>
       </div>
       {expanded && (
-        <div style={{ ...styles.pipelineExpanded, paddingLeft: isMobile ? '24px' : '100px' }}>
+        <div style={{ ...styles.pipelineExpanded, paddingLeft: isMobile ? '16px' : '100px' }}>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <div style={{ width: '100%' }}>
               <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Status</p>
@@ -560,20 +634,20 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
           ))}
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: isMobile ? '8px' : '0' }}>
-          <select style={{ ...styles.filterSelect, fontSize: isMobile ? '12px' : '13px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <select style={{ ...styles.filterSelect, fontSize: '12px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Newest</option>
             <option value="price_low">Price ↑</option>
             <option value="price_high">Price ↓</option>
             <option value="most_discounted">Most Discounted</option>
           </select>
-          <select style={{ ...styles.filterSelect, fontSize: isMobile ? '12px' : '13px' }} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
+          <select style={{ ...styles.filterSelect, fontSize: '12px' }} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
             <option value="craigslist">Craigslist</option>
             <option value="offerup">OfferUp</option>
           </select>
-          <input style={{ ...styles.filterInput, width: isMobile ? '90px' : '100px' }} type="number" placeholder="Min $" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
-          <input style={{ ...styles.filterInput, width: isMobile ? '90px' : '100px' }} type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+          <input style={{ ...styles.filterInput, width: '90px' }} type="number" placeholder="Min $" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+          <input style={{ ...styles.filterInput, width: '90px' }} type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
         </div>
       </div>
       {loading ? <p style={styles.loading}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={styles.loading}>No leads match your filters.</p> : (
@@ -623,7 +697,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
 
   return (
     <div style={styles.pageContent}>
-      <div style={{ ...styles.pipelineStats, padding: isMobile ? '16px' : '20px 32px', gap: isMobile ? '16px' : '24px', flexWrap: 'wrap' }}>
+      <div style={{ ...styles.pipelineStats, padding: isMobile ? '16px' : '20px 32px', flexWrap: 'wrap' }}>
         {[
           { label: 'Reached Out', value: countByStatus('reached_out'), color: '#16a34a' },
           { label: 'Follow Up', value: countByStatus('follow_up'), color: '#d97706' },
@@ -668,7 +742,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
       {loading ? <p style={styles.loading}>Loading...</p> : pipelineLeads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 24px' }}>
           <p style={{ color: '#888', fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
-          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to see them here.</p>
+          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
         </div>
       ) : (
         <div style={styles.pipelineList}>
@@ -686,44 +760,143 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
 // ---------------------------------------------------------------------------
 function AnalyticsPage({ leads, actions, isMobile }) {
   const getStatus = (lead) => actions[lead.listing_id]?.status || 'new'
+
   const total = leads.length
-  const contacted = leads.filter(l => ['reached_out', 'follow_up', 'connected'].includes(getStatus(l))).length
+  const newCount = leads.filter(l => getStatus(l) === 'new').length
+  const reachedOut = leads.filter(l => getStatus(l) === 'reached_out').length
+  const followUp = leads.filter(l => getStatus(l) === 'follow_up').length
   const connected = leads.filter(l => getStatus(l) === 'connected').length
   const notInterested = leads.filter(l => getStatus(l) === 'not_interested').length
-  const contactRate = total > 0 ? ((contacted / total) * 100).toFixed(1) : 0
+  const contactRate = total > 0 ? (((reachedOut + followUp + connected) / total) * 100).toFixed(1) : 0
+
   const facebookLeads = leads.filter(l => l.platform === 'facebook').length
   const craigslistLeads = leads.filter(l => l.platform === 'craigslist').length
   const offerupLeads = leads.filter(l => l.platform === 'offerup').length
 
+  const platformData = [
+    { name: 'Facebook', value: facebookLeads, color: '#1d4ed8' },
+    { name: 'Craigslist', value: craigslistLeads, color: '#16a34a' },
+    { name: 'OfferUp', value: offerupLeads, color: '#d97706' },
+  ].filter(d => d.value > 0)
+
+  const statusData = [
+    { name: 'New', value: newCount, color: '#2563eb' },
+    { name: 'Reached Out', value: reachedOut, color: '#16a34a' },
+    { name: 'Follow Up', value: followUp, color: '#d97706' },
+    { name: 'Connected', value: connected, color: '#7c3aed' },
+    { name: 'Not Interested', value: notInterested, color: '#dc2626' },
+  ].filter(d => d.value > 0)
+
+  const withKeywords = leads.filter(l => l.matched_keywords?.length > 0).length
+  const withPriceSignal = leads.filter(l => (l.discount_percent || 0) >= 20).length
+  const avgPrice = leads.length > 0 ? Math.round(leads.reduce((sum, l) => sum + (l.price || 0), 0) / leads.length) : 0
+
   return (
     <div style={styles.pageContent}>
       <div style={{ padding: isMobile ? '16px' : '32px' }}>
-        <h2 style={{ color: '#fff', fontSize: isMobile ? '18px' : '22px', margin: '0 0 24px 0' }}>Analytics</h2>
+        <h2 style={{ color: '#fff', fontSize: isMobile ? '18px' : '22px', margin: '0 0 24px 0', fontWeight: '700' }}>Analytics</h2>
+
+        {/* Overview stats */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
           {[
             { label: 'Total Leads', value: total, color: '#2563eb' },
             { label: 'Contact Rate', value: `${contactRate}%`, color: '#16a34a' },
             { label: 'Connected', value: connected, color: '#7c3aed' },
-            { label: 'Not Interested', value: notInterested, color: '#dc2626' },
+            { label: 'Avg Price', value: `$${avgPrice.toLocaleString()}`, color: '#d97706' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '24px', border: '1px solid #2a2a2a' }}>
-              <p style={{ color: stat.color, fontSize: isMobile ? '24px' : '32px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
+            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '20px', border: '1px solid #2a2a2a' }}>
+              <p style={{ color: stat.color, fontSize: isMobile ? '22px' : '28px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
               <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
             </div>
           ))}
         </div>
-        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '24px', border: '1px solid #2a2a2a', marginBottom: '16px' }}>
-          <h3 style={{ color: '#fff', fontSize: '15px', margin: '0 0 16px 0' }}>Leads by Platform</h3>
-          <div style={{ display: 'flex', gap: isMobile ? '20px' : '32px' }}>
-            {[{ label: 'Facebook', value: facebookLeads, color: '#1d4ed8' }, { label: 'Craigslist', value: craigslistLeads, color: '#16a34a' }, { label: 'OfferUp', value: offerupLeads, color: '#d97706' }].map(p => (
-              <div key={p.label}>
-                <p style={{ color: p.color, fontSize: isMobile ? '22px' : '28px', fontWeight: '700', margin: '0 0 4px 0' }}>{p.value}</p>
-                <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{p.label}</p>
+
+        {/* Charts row */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
+
+          {/* Platform pie chart */}
+          <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+            <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Platform</h3>
+            {platformData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={platformData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    {platformData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
+                  <Legend formatter={(value) => <span style={{ color: '#888', fontSize: '12px' }}>{value}</span>} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>
+            )}
+          </div>
+
+          {/* Status pie chart */}
+          <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+            <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Status</h3>
+            {statusData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    {statusData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
+                  <Legend formatter={(value) => <span style={{ color: '#888', fontSize: '12px' }}>{value}</span>} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Signal breakdown */}
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a', marginBottom: '16px' }}>
+          <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Lead Signal Breakdown</h3>
+          <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+            {[
+              { label: 'Keyword Match', value: withKeywords, color: '#fca5a5', bg: '#7f1d1d' },
+              { label: 'Price Signal', value: withPriceSignal, color: '#93c5fd', bg: '#1e3a5f' },
+              { label: 'Both Signals', value: leads.filter(l => l.matched_keywords?.length > 0 && (l.discount_percent || 0) >= 20).length, color: '#a78bfa', bg: '#4c1d95' },
+            ].map(s => (
+              <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ background: s.bg, borderRadius: '8px', padding: '6px 12px' }}>
+                  <span style={{ color: s.color, fontSize: '18px', fontWeight: '700' }}>{s.value}</span>
+                </div>
+                <span style={{ color: '#888', fontSize: '12px' }}>{s.label}</span>
               </div>
             ))}
           </div>
         </div>
-        <p style={{ color: '#555', fontSize: '12px' }}>More analytics coming soon.</p>
+
+        {/* Status detail */}
+        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+          <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Outreach Breakdown</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              { label: 'New Leads', value: newCount, color: '#2563eb', total },
+              { label: 'Reached Out', value: reachedOut, color: '#16a34a', total },
+              { label: 'Follow Up', value: followUp, color: '#d97706', total },
+              { label: 'Connected', value: connected, color: '#7c3aed', total },
+              { label: 'Not Interested', value: notInterested, color: '#dc2626', total },
+            ].map(s => (
+              <div key={s.label}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span style={{ color: '#888', fontSize: '12px' }}>{s.label}</span>
+                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: '600' }}>{s.value}</span>
+                </div>
+                <div style={{ background: '#2a2a2a', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
+                  <div style={{ background: s.color, height: '100%', width: `${total > 0 ? (s.value / total) * 100 : 0}%`, borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -785,18 +958,18 @@ function Dashboard({ user }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '28px' : '32px', objectFit: 'contain' }} />
             <input
-              style={{ ...styles.filterInput, width: isMobile ? '160px' : '240px' }}
+              style={{ ...styles.filterInput, width: isMobile ? '140px' : '220px' }}
               type="text"
               placeholder="🔍 Search..."
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <span style={{ color: '#555', fontSize: '12px', display: isMobile ? 'none' : 'block' }}>{user.email}</span>
+          <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
 
         {/* Stats bar */}
-        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '16px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto' }}>
+        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '14px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto' }}>
           {[
             { label: 'New', value: newCount, color: '#2563eb' },
             { label: 'Reached Out', value: reachedOutCount, color: '#16a34a' },
@@ -805,8 +978,8 @@ function Dashboard({ user }) {
             { label: 'Not Interested', value: notInterestedCount, color: '#dc2626' },
           ].map(s => (
             <div key={s.label} style={{ ...styles.stat, flexShrink: 0 }}>
-              <span style={{ ...styles.statNumber, color: s.color, fontSize: isMobile ? '18px' : '22px' }}>{s.value}</span>
-              <span style={{ ...styles.statLabel, fontSize: isMobile ? '9px' : '11px' }}>{s.label}</span>
+              <span style={{ ...styles.statNumber, color: s.color, fontSize: isMobile ? '16px' : '20px' }}>{s.value}</span>
+              <span style={{ ...styles.statLabel, fontSize: isMobile ? '9px' : '10px' }}>{s.label}</span>
             </div>
           ))}
         </div>
@@ -909,7 +1082,7 @@ const styles = {
   sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0 },
   sidebarLogoWrap: { padding: '8px 14px 20px 14px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px', height: '44px', display: 'flex', alignItems: 'center' },
   sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 6px' },
-  sidebarItem: { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif" },
+  sidebarItem: { display: 'flex', alignItems: 'center', padding: '10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif" },
   sidebarLogout: { margin: '8px 6px 4px 6px', padding: '10px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center' },
   bottomNav: { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#111', borderTop: '1px solid #1a1a1a', display: 'flex', zIndex: 100 },
   bottomNavItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
@@ -917,10 +1090,9 @@ const styles = {
   filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px', flexWrap: 'wrap' },
   tabs: { display: 'flex', gap: '6px' },
   tab: { border: '1px solid #3a3a3a', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
-  filtersRight: { display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' },
-  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 10px', color: '#ffffff', fontSize: '13px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px 10px', color: '#ffffff', fontSize: '13px', outline: 'none' },
-  grid: { display: 'grid', gap: '16px' },
+  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '7px 10px', color: '#ffffff', fontSize: '12px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
+  filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '7px 10px', color: '#ffffff', fontSize: '13px', outline: 'none', fontFamily: "'Inter', sans-serif" },
+  grid: { display: 'grid' },
   card: { background: '#1a1a1a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column' },
   platformBanner: { padding: '4px 12px', fontSize: '10px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' },
   alertBanner: { background: '#111', borderBottom: '1px solid #2a2a2a', padding: '6px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' },
@@ -942,16 +1114,16 @@ const styles = {
   notesDisplay: { cursor: 'pointer', borderRadius: '6px', padding: '6px 8px', border: '1px dashed #3a3a3a' },
   notesText: { color: '#ccc', fontSize: '12px', margin: 0 },
   notesPlaceholder: { color: '#555', fontSize: '12px', margin: 0 },
-  notesInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px', color: '#ffffff', fontSize: '13px', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  notesInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px', color: '#ffffff', fontSize: '13px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
   notesButtons: { display: 'flex', gap: '8px', marginTop: '6px' },
   statusRow: { display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '6px' },
-  statusBtn: { border: '1px solid', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', fontWeight: '600' },
+  statusBtn: { border: '1px solid', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   followUpRow: { display: 'flex', gap: '8px', alignItems: 'center' },
   dateInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '12px', outline: 'none' },
-  saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
-  cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer' },
+  saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
+  cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
   loading: { color: '#888', textAlign: 'center', padding: '60px' },
-  pipelineStats: { display: 'flex', borderBottom: '1px solid #2a2a2a' },
+  pipelineStats: { display: 'flex', borderBottom: '1px solid #2a2a2a', gap: '24px' },
   pipelineStat: { display: 'flex', flexDirection: 'column', gap: '2px' },
   pipelineStatNum: { fontWeight: '700' },
   pipelineStatLabel: { fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
