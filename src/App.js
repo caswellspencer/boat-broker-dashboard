@@ -14,40 +14,142 @@ function useIsMobile() {
 }
 
 function IconLeads({ color = '#888', size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  )
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
 }
 function IconPipeline({ color = '#888', size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  )
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
 }
 function IconAnalytics({ color = '#888', size = 18 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" />
-    </svg>
-  )
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" /></svg>
 }
 function IconSignOut({ color = '#555', size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  )
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
 }
 function IconUser({ color = '#888', size = 18 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+}
+
+function NotificationToggle({ label, desc, defaultOn }) {
+  const [on, setOn] = useState(defaultOn)
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-    </svg>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+      <div>
+        <p style={{ color: '#fff', fontSize: '12px', fontWeight: '600', margin: '0 0 2px 0' }}>{label}</p>
+        <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>{desc}</p>
+      </div>
+      <button onClick={() => setOn(!on)} style={{ flexShrink: 0, width: '36px', height: '20px', borderRadius: '10px', background: on ? '#2563eb' : '#3a3a3a', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+        <div style={{ position: 'absolute', top: '2px', left: on ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+      </button>
+    </div>
+  )
+}
+
+function ProfileDropdown({ user, onLogout }) {
+  const [open, setOpen] = useState(false)
+  const [view, setView] = useState('menu')
+  const ref = useRef(null)
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setView('menu') } }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+  const btnStyle = { width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'transparent', border: 'none', borderRadius: '6px', color: '#ccc', cursor: 'pointer', fontSize: '13px', fontFamily: "'Inter', sans-serif", textAlign: 'left' }
+  const backBtn = { background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '16px', padding: '0' }
+  const sectionHeader = { padding: '12px 16px', borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: '8px' }
+  const menuItems = [
+    { id: 'profile', icon: '👤', label: 'My Profile' },
+    { id: 'notifications', icon: '🔔', label: 'Notification Settings' },
+    { id: 'support', icon: '💬', label: 'Help & Support' },
+  ]
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button onClick={() => { setOpen(!open); setView('menu') }} style={{ background: open ? '#2a2a2a' : 'transparent', border: '1px solid #2a2a2a', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <IconUser color={open ? '#fff' : '#888'} size={16} />
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', right: 0, top: '44px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', minWidth: '260px', zIndex: 200, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+          {view === 'menu' && (
+            <>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #2a2a2a' }}>
+                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>My Account</p>
+                <p style={{ color: '#555', fontSize: '12px', margin: 0, wordBreak: 'break-all' }}>{user.email}</p>
+              </div>
+              <div style={{ padding: '6px' }}>
+                {menuItems.map(item => (
+                  <button key={item.id} onClick={() => setView(item.id)} style={btnStyle}
+                    onMouseEnter={e => e.currentTarget.style.background = '#2a2a2a'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <span>{item.icon}</span>{item.label}
+                  </button>
+                ))}
+                <div style={{ borderTop: '1px solid #2a2a2a', marginTop: '6px', paddingTop: '6px' }}>
+                  <button onClick={() => { setOpen(false); onLogout() }} style={{ ...btnStyle, color: '#dc2626' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#2a2a2a'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <IconSignOut color="#dc2626" size={14} />Sign Out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {view === 'profile' && (
+            <>
+              <div style={sectionHeader}>
+                <button onClick={() => setView('menu')} style={backBtn}>←</button>
+                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>My Profile</p>
+              </div>
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {[
+                  { label: 'Email', value: user.email },
+                  { label: 'Market', value: 'Miami, FL' },
+                  { label: 'Plan', value: 'Early Access — Free', color: '#16a34a' },
+                  { label: 'Scrape Schedule', value: '9:00 AM & 5:00 PM ET daily' },
+                ].map(item => (
+                  <div key={item.label}>
+                    <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px 0' }}>{item.label}</p>
+                    <p style={{ color: item.color || '#fff', fontSize: '13px', margin: 0, wordBreak: 'break-all', fontWeight: item.color ? '600' : '400' }}>{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {view === 'notifications' && (
+            <>
+              <div style={sectionHeader}>
+                <button onClick={() => setView('menu')} style={backBtn}>←</button>
+                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>Notification Settings</p>
+              </div>
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <NotificationToggle label="New Lead Alerts" desc="Email when new motivated sellers are found" defaultOn={true} />
+                <NotificationToggle label="Follow Up Reminders" desc="Daily 9am reminder for leads due today" defaultOn={true} />
+                <NotificationToggle label="Price Drop Alerts" desc="Notify when a listing drops in price" defaultOn={false} />
+                <p style={{ color: '#555', fontSize: '11px', margin: '4px 0 0 0' }}>Changes take effect on the next scrape cycle.</p>
+              </div>
+            </>
+          )}
+          {view === 'support' && (
+            <>
+              <div style={sectionHeader}>
+                <button onClick={() => setView('menu')} style={backBtn}>←</button>
+                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>Help & Support</p>
+              </div>
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <p style={{ color: '#888', fontSize: '12px', margin: 0, lineHeight: '1.6' }}>Have a question or found a bug? Reach out and we'll get back to you within 24 hours.</p>
+                <a href="mailto:support@getyachtwatch.com" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#2a2a2a', borderRadius: '8px', color: '#2563eb', fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>
+                  📧 support@getyachtwatch.com
+                </a>
+                <div style={{ background: '#2a2a2a', borderRadius: '8px', padding: '12px' }}>
+                  <p style={{ color: '#fff', fontSize: '12px', fontWeight: '600', margin: '0 0 8px 0' }}>Quick Tips</p>
+                  {['Leads refresh at 9am and 5pm ET daily', 'Use Pipeline to track active conversations', 'Set follow up dates to get email reminders', 'Search by boat make, location, or title'].map(tip => (
+                    <p key={tip} style={{ color: '#888', fontSize: '11px', margin: '0 0 4px 0' }}>• {tip}</p>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -81,13 +183,7 @@ function LandingPage() {
             { num: '01', title: 'We Scrape', text: 'We scan Facebook Marketplace, Craigslist, and OfferUp every morning and afternoon for private sellers listing boats over $50k in your market.' },
             { num: '02', title: 'We Filter', text: 'We read every description looking for the signals you already know — moving out of state, health reasons, behind on slip fees, repo, estate sales.' },
             { num: '03', title: 'You Close', text: 'You get an email the moment a lead comes in. Open the dashboard, read the description, and reach out before anyone else knows it exists.' },
-          ].map(s => (
-            <div key={s.num} style={styles.step}>
-              <div style={styles.stepNumber}>{s.num}</div>
-              <h3 style={styles.stepTitle}>{s.title}</h3>
-              <p style={styles.stepText}>{s.text}</p>
-            </div>
-          ))}
+          ].map(s => <div key={s.num} style={styles.step}><div style={styles.stepNumber}>{s.num}</div><h3 style={styles.stepTitle}>{s.title}</h3><p style={styles.stepText}>{s.text}</p></div>)}
         </div>
       </div>
       <div style={{ ...styles.valueSection, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', padding: isMobile ? '40px 24px' : '80px 60px' }}>
@@ -96,13 +192,7 @@ function LandingPage() {
           { icon: '🚨', title: 'Motivated Seller Detection', text: "We're not just looking for boats for sale. We're looking for owners who need to sell." },
           { icon: '📧', title: 'Instant Email Alerts', text: 'The broker who calls first wins the listing. We make sure that broker is you.' },
           { icon: '📋', title: 'Built-in CRM', text: 'Track every conversation, set follow up reminders, and add notes on each seller.' },
-        ].map(v => (
-          <div key={v.title} style={styles.valueCard}>
-            <div style={styles.valueIcon}>{v.icon}</div>
-            <h3 style={styles.valueTitle}>{v.title}</h3>
-            <p style={styles.valueText}>{v.text}</p>
-          </div>
-        ))}
+        ].map(v => <div key={v.title} style={styles.valueCard}><div style={styles.valueIcon}>{v.icon}</div><h3 style={styles.valueTitle}>{v.title}</h3><p style={styles.valueText}>{v.text}</p></div>)}
       </div>
       <div style={{ ...styles.ctaSection, padding: isMobile ? '60px 24px' : '100px 60px' }}>
         <h2 style={{ ...styles.ctaTitle, fontSize: isMobile ? '28px' : '40px' }}>Built by brokers, for brokers.</h2>
@@ -117,9 +207,6 @@ function LandingPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// LOGIN
-// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -147,9 +234,6 @@ function LoginPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// SIGNUP
-// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -176,7 +260,7 @@ function SignupPage() {
       <div style={styles.authBox}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
         <h2 style={styles.authTitle}>You're all set 🚤</h2>
-        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Welcome to YachtWatch. Your market is configured and leads will start hitting your inbox at 9am and 5pm daily.</p>
+        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Welcome to YachtWatch. Leads will start hitting your inbox at 9am and 5pm daily.</p>
         <button style={styles.button} onClick={() => navigate('/login')}>Go to Dashboard</button>
       </div>
     </div>
@@ -201,39 +285,6 @@ function SignupPage() {
         <button style={styles.button} onClick={handleSignup} disabled={loading}>{loading ? 'Creating account...' : 'Request Access'}</button>
         <p style={styles.authSwitch}>Already have an account?{' '}<span style={styles.authLink} onClick={() => navigate('/login')}>Sign in</span></p>
       </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// PROFILE DROPDOWN
-// ---------------------------------------------------------------------------
-function ProfileDropdown({ user, onLogout }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-  return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => setOpen(!open)} style={{ background: open ? '#2a2a2a' : 'transparent', border: '1px solid #2a2a2a', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <IconUser color={open ? '#fff' : '#888'} size={16} />
-      </button>
-      {open && (
-        <div style={{ position: 'absolute', right: 0, top: '44px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', minWidth: '220px', zIndex: 100, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #2a2a2a' }}>
-            <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>My Account</p>
-            <p style={{ color: '#555', fontSize: '12px', margin: 0, wordBreak: 'break-all' }}>{user.email}</p>
-          </div>
-          <div style={{ padding: '6px' }}>
-            <button onClick={() => { setOpen(false); onLogout() }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'transparent', border: 'none', borderRadius: '6px', color: '#dc2626', cursor: 'pointer', fontSize: '13px', fontFamily: "'Inter', sans-serif", textAlign: 'left' }}>
-              <IconSignOut color="#dc2626" size={14} />Sign Out
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -265,7 +316,11 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile }) {
     )
   }
   return (
-    <div style={{ ...styles.sidebar, width: hovered ? '180px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+    <div
+      style={{ ...styles.sidebar, width: hovered ? '180px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <div style={styles.sidebarLogoWrap}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease', whiteSpace: 'nowrap' }} />
       </div>
@@ -469,10 +524,7 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
         {!isMobile && (
           <>
             <div style={{ flex: 1 }}><span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '3px 8px', fontSize: '10px', fontWeight: '700' }}>{statusLabels[status]}</span></div>
-            <div style={{ flex: 1 }}>
-              {followUpDate ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p>
-                : <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>No follow up</p>}
-            </div>
+            <div style={{ flex: 1 }}>{followUpDate ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p> : <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>No follow up</p>}</div>
             <div style={{ flex: 2 }}><p style={{ color: '#888', fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{notes || '+ Add notes'}</p></div>
           </>
         )}
@@ -616,9 +668,7 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
       </div>
       {loading ? <p style={styles.loading}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={styles.loading}>No leads match your filters.</p> : (
         <div style={{ ...styles.grid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', padding: isMobile ? '16px' : '32px', gap: isMobile ? '16px' : '24px' }}>
-          {filteredLeads.map(lead => (
-            <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
-          ))}
+          {filteredLeads.map(lead => <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />)}
         </div>
       )}
     </div>
@@ -654,10 +704,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
     })
 
   const countByStatus = (s) => leads.filter(l => getStatus(l) === s).length
-  const overdueCount = leads.filter(l => {
-    const fu = getFollowUpDate(l)
-    return fu && fu < new Date().toISOString().split('T')[0]
-  }).length
+  const overdueCount = leads.filter(l => { const fu = getFollowUpDate(l); return fu && fu < new Date().toISOString().split('T')[0] }).length
 
   return (
     <div style={styles.pageContent}>
@@ -710,9 +757,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
         </div>
       ) : (
         <div style={styles.pipelineList}>
-          {pipelineLeads.map(lead => (
-            <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} isMobile={isMobile} />
-          ))}
+          {pipelineLeads.map(lead => <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} isMobile={isMobile} />)}
         </div>
       )}
     </div>
@@ -731,17 +776,14 @@ function AnalyticsPage({ leads, actions, isMobile }) {
   const connected = leads.filter(l => getStatus(l) === 'connected').length
   const notInterested = leads.filter(l => getStatus(l) === 'not_interested').length
   const contactRate = total > 0 ? (((reachedOut + followUp + connected) / total) * 100).toFixed(1) : 0
-  const facebookLeads = leads.filter(l => l.platform === 'facebook').length
-  const craigslistLeads = leads.filter(l => l.platform === 'craigslist').length
-  const offerupLeads = leads.filter(l => l.platform === 'offerup').length
   const avgPrice = leads.length > 0 ? Math.round(leads.reduce((sum, l) => sum + (l.price || 0), 0) / leads.length) : 0
   const withKeywords = leads.filter(l => l.matched_keywords?.length > 0).length
   const withPriceSignal = leads.filter(l => (l.discount_percent || 0) >= 20).length
 
   const platformData = [
-    { name: 'Facebook', value: facebookLeads, color: '#1d4ed8' },
-    { name: 'Craigslist', value: craigslistLeads, color: '#16a34a' },
-    { name: 'OfferUp', value: offerupLeads, color: '#d97706' },
+    { name: 'Facebook', value: leads.filter(l => l.platform === 'facebook').length, color: '#1d4ed8' },
+    { name: 'Craigslist', value: leads.filter(l => l.platform === 'craigslist').length, color: '#16a34a' },
+    { name: 'OfferUp', value: leads.filter(l => l.platform === 'offerup').length, color: '#d97706' },
   ].filter(d => d.value > 0)
 
   const statusData = [
@@ -751,6 +793,9 @@ function AnalyticsPage({ leads, actions, isMobile }) {
     { name: 'Connected', value: connected, color: '#7c3aed' },
     { name: 'Not Interested', value: notInterested, color: '#dc2626' },
   ].filter(d => d.value > 0)
+
+  const chartStyle = { background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }
+  const tooltipStyle = { contentStyle: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' } }
 
   return (
     <div style={styles.pageContent}>
@@ -770,36 +815,36 @@ function AnalyticsPage({ leads, actions, isMobile }) {
           ))}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+          <div style={chartStyle}>
             <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Platform</h3>
             {platformData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie data={platformData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                    {platformData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                    {platformData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
-                  <Legend formatter={(value) => <span style={{ color: '#888', fontSize: '12px' }}>{value}</span>} />
+                  <Tooltip {...tooltipStyle} />
+                  <Legend formatter={v => <span style={{ color: '#888', fontSize: '12px' }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             ) : <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
           </div>
-          <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+          <div style={chartStyle}>
             <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Status</h3>
             {statusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie data={statusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                    {statusData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                    {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' }} />
-                  <Legend formatter={(value) => <span style={{ color: '#888', fontSize: '12px' }}>{value}</span>} />
+                  <Tooltip {...tooltipStyle} />
+                  <Legend formatter={v => <span style={{ color: '#888', fontSize: '12px' }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             ) : <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
           </div>
         </div>
-        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a', marginBottom: '16px' }}>
+        <div style={{ ...chartStyle, marginBottom: '16px' }}>
           <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Lead Signal Breakdown</h3>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             {[
@@ -816,7 +861,7 @@ function AnalyticsPage({ leads, actions, isMobile }) {
             ))}
           </div>
         </div>
-        <div style={{ background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }}>
+        <div style={chartStyle}>
           <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Outreach Breakdown</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
@@ -890,15 +935,22 @@ function Dashboard({ user }) {
   return (
     <div style={{ ...styles.dashboardShell, flexDirection: isMobile ? 'column' : 'row' }}>
       {!isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={false} />}
-      <div style={{ ...styles.dashboardMain, paddingBottom: isMobile ? '60px' : '0' }}>
-        <div style={{ ...styles.topBar, padding: isMobile ? '10px 16px' : '12px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '28px' : '32px', objectFit: 'contain' }} />
-            <input style={{ ...styles.filterInput, width: isMobile ? '140px' : '220px' }} type="text" placeholder="🔍 Search..." value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
+      <div style={styles.dashboardMain}>
+        {/* Sticky top bar */}
+        <div style={{ ...styles.topBar, padding: isMobile ? '10px 16px' : '12px 24px', position: 'sticky', top: 0, zIndex: 50 }}>
+          <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '28px' : '32px', objectFit: 'contain', flexShrink: 0 }} />
+          <input
+            style={{ ...styles.searchBar, width: isMobile ? '180px' : '360px' }}
+            type="text"
+            placeholder="🔍 Search listings..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
           <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
-        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '14px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto' }}>
+
+        {/* Sticky stats bar */}
+        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '14px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto', position: 'sticky', top: isMobile ? '49px' : '57px', zIndex: 40 }}>
           {[
             { label: 'New', value: counts.new, color: '#2563eb' },
             { label: 'Reached Out', value: counts.reached_out, color: '#16a34a' },
@@ -912,6 +964,7 @@ function Dashboard({ user }) {
             </div>
           ))}
         </div>
+
         {activePage === 'leads' && <LeadsPage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
         {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
         {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} isMobile={isMobile} />}
@@ -987,14 +1040,17 @@ const styles = {
   input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 14px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
   button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '15px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
   error: { color: '#ef4444', fontSize: '13px', margin: 0 },
-  dashboardShell: { display: 'flex', minHeight: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif" },
+  // Dashboard
+  dashboardShell: { display: 'flex', height: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif", overflow: 'hidden' },
   dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 },
-  topBar: { background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px' },
-  statsBar: { display: 'flex', borderBottom: '1px solid #2a2a2a', background: '#111' },
+  topBar: { background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px', flexShrink: 0 },
+  searchBar: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '9px 14px', color: '#ffffff', fontSize: '14px', outline: 'none', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.2s' },
+  statsBar: { display: 'flex', borderBottom: '1px solid #2a2a2a', background: '#111', flexShrink: 0 },
   stat: { display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 },
   statNumber: { fontWeight: '700' },
   statLabel: { color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0 },
+  // Sidebar — sticky via position: sticky on the shell
+  sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', alignSelf: 'flex-start' },
   sidebarLogoWrap: { padding: '8px 14px 20px 14px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px', height: '44px', display: 'flex', alignItems: 'center' },
   sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 6px' },
   sidebarItem: { display: 'flex', alignItems: 'center', padding: '10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif" },
