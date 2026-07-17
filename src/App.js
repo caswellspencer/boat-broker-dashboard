@@ -3,6 +3,57 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
+// ---------------------------------------------------------------------------
+// DESIGN TOKENS
+// ---------------------------------------------------------------------------
+const t = {
+  // Canvas layers
+  bg: '#0d0d0f',
+  surface: '#141416',
+  elevated: '#1a1a1d',
+  overlay: '#222226',
+  border: '#2a2a2f',
+  borderSubtle: '#1f1f24',
+
+  // Text
+  textPrimary: '#f0f0f2',
+  textSecondary: '#a0a0aa',
+  textMuted: '#5a5a66',
+
+  // Accent
+  accent: '#2563eb',
+  accentHover: '#1d4ed8',
+  accentSubtle: 'rgba(37,99,235,0.12)',
+
+  // Semantic
+  success: '#16a34a',
+  successSubtle: 'rgba(22,163,74,0.12)',
+  warning: '#d97706',
+  warningSubtle: 'rgba(217,119,6,0.12)',
+  danger: '#dc2626',
+  dangerSubtle: 'rgba(220,38,38,0.12)',
+  purple: '#7c3aed',
+  purpleSubtle: 'rgba(124,58,237,0.12)',
+
+  // Platform
+  facebook: '#1d4ed8',
+  craigslist: '#16a34a',
+  offerup: '#d97706',
+
+  // Radius
+  radiusSm: '4px',
+  radiusMd: '6px',
+  radiusLg: '10px',
+  radiusXl: '14px',
+  radiusFull: '9999px',
+
+  // Font
+  font: "'Inter', -apple-system, sans-serif",
+}
+
+// ---------------------------------------------------------------------------
+// HOOKS
+// ---------------------------------------------------------------------------
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   useEffect(() => {
@@ -13,135 +64,208 @@ function useIsMobile() {
   return isMobile
 }
 
-function IconLeads({ color = '#888', size = 18 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-}
-function IconPipeline({ color = '#888', size = 18 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
-}
-function IconAnalytics({ color = '#888', size = 18 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" /></svg>
-}
-function IconSignOut({ color = '#555', size = 16 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-}
-function IconUser({ color = '#888', size = 18 }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+// ---------------------------------------------------------------------------
+// HELPERS
+// ---------------------------------------------------------------------------
+function getInitials(email) {
+  if (!email) return '?'
+  const username = email.split('@')[0]
+  const parts = username.split(/[._-]/)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return username.slice(0, 2).toUpperCase()
 }
 
+function Avatar({ email, size = 32 }) {
+  const initials = getInitials(email)
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: t.radiusFull,
+      background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#fff', fontSize: size * 0.38, fontWeight: '700',
+      fontFamily: t.font, flexShrink: 0, letterSpacing: '0.02em',
+    }}>
+      {initials}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// ICONS
+// ---------------------------------------------------------------------------
+function IconLeads({ color = t.textMuted, size = 17 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+}
+function IconPipeline({ color = t.textMuted, size = 17 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+}
+function IconAnalytics({ color = t.textMuted, size = 17 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /><line x1="2" y1="20" x2="22" y2="20" /></svg>
+}
+function IconSignOut({ color = t.textMuted, size = 15 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+}
+function IconChevron({ color = t.textMuted, size = 14 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+}
+function IconCheck({ color = t.success, size = 13 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+}
+
+// ---------------------------------------------------------------------------
+// NOTIFICATION TOGGLE
+// ---------------------------------------------------------------------------
 function NotificationToggle({ label, desc, defaultOn }) {
   const [on, setOn] = useState(defaultOn)
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
       <div>
-        <p style={{ color: '#fff', fontSize: '12px', fontWeight: '600', margin: '0 0 2px 0' }}>{label}</p>
-        <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>{desc}</p>
+        <p style={{ color: t.textPrimary, fontSize: '12px', fontWeight: '600', margin: '0 0 2px 0' }}>{label}</p>
+        <p style={{ color: t.textMuted, fontSize: '11px', margin: 0 }}>{desc}</p>
       </div>
-      <button onClick={() => setOn(!on)} style={{ flexShrink: 0, width: '36px', height: '20px', borderRadius: '10px', background: on ? '#2563eb' : '#3a3a3a', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-        <div style={{ position: 'absolute', top: '2px', left: on ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+      <button onClick={() => setOn(!on)} style={{ flexShrink: 0, width: '34px', height: '18px', borderRadius: t.radiusFull, background: on ? t.accent : t.overlay, border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.15s' }}>
+        <div style={{ position: 'absolute', top: '2px', left: on ? '16px' : '2px', width: '14px', height: '14px', borderRadius: t.radiusFull, background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.4)' }} />
       </button>
     </div>
   )
 }
 
+// ---------------------------------------------------------------------------
+// PROFILE DROPDOWN
+// ---------------------------------------------------------------------------
 function ProfileDropdown({ user, onLogout }) {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState('menu')
   const ref = useRef(null)
+
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) { setOpen(false); setView('menu') } }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
-  const btnStyle = { width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', background: 'transparent', border: 'none', borderRadius: '6px', color: '#ccc', cursor: 'pointer', fontSize: '13px', fontFamily: "'Inter', sans-serif", textAlign: 'left' }
-  const backBtn = { background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '16px', padding: '0' }
-  const sectionHeader = { padding: '12px 16px', borderBottom: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', gap: '8px' }
+
   const menuItems = [
     { id: 'profile', icon: '👤', label: 'My Profile' },
     { id: 'notifications', icon: '🔔', label: 'Notification Settings' },
     { id: 'support', icon: '💬', label: 'Help & Support' },
   ]
+
+  const MenuItem = ({ onClick, children, danger }) => {
+    const [hovered, setHovered] = useState(false)
+    return (
+      <button
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', background: hovered ? t.overlay : 'transparent', border: 'none', borderRadius: t.radiusMd, color: danger ? t.danger : t.textSecondary, cursor: 'pointer', fontSize: '13px', fontFamily: t.font, textAlign: 'left', transition: 'background 0.1s' }}
+      >
+        {children}
+      </button>
+    )
+  }
+
+  const sectionHeader = (
+    <div style={{ padding: '11px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <button onClick={() => setView('menu')} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontSize: '15px', padding: '0', lineHeight: 1 }}>←</button>
+      <p style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: 0 }}>
+        {view === 'profile' ? 'My Profile' : view === 'notifications' ? 'Notification Settings' : 'Help & Support'}
+      </p>
+    </div>
+  )
+
   return (
     <div ref={ref} style={{ position: 'relative' }}>
-      <button onClick={() => { setOpen(!open); setView('menu') }} style={{ background: open ? '#2a2a2a' : 'transparent', border: '1px solid #2a2a2a', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <IconUser color={open ? '#fff' : '#888'} size={16} />
+      <button
+        onClick={() => { setOpen(!open); setView('menu') }}
+        style={{ background: 'transparent', border: `1px solid ${open ? t.border : 'transparent'}`, borderRadius: t.radiusFull, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: '3px', transition: 'border-color 0.15s' }}
+      >
+        <Avatar email={user.email} size={30} />
       </button>
+
       {open && (
-        <div style={{ position: 'absolute', right: 0, top: '44px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', minWidth: '260px', zIndex: 200, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+        <div style={{ position: 'absolute', right: 0, top: '42px', background: t.surface, border: `1px solid ${t.border}`, borderRadius: t.radiusLg, minWidth: '240px', zIndex: 200, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
+
           {view === 'menu' && (
             <>
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid #2a2a2a' }}>
-                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>My Account</p>
-                <p style={{ color: '#555', fontSize: '12px', margin: 0, wordBreak: 'break-all' }}>{user.email}</p>
+              {/* Identity header */}
+              <div style={{ padding: '14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Avatar email={user.email} size={36} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 1px 0' }}>
+                    {user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                  </p>
+                  <p style={{ color: t.textMuted, fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+                </div>
               </div>
+
+              {/* Plan badge */}
+              <div style={{ padding: '8px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: t.textMuted, fontSize: '11px' }}>Plan</span>
+                <span style={{ background: t.successSubtle, color: t.success, fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: t.radiusFull, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Early Access</span>
+              </div>
+
+              {/* Nav items */}
               <div style={{ padding: '6px' }}>
                 {menuItems.map(item => (
-                  <button key={item.id} onClick={() => setView(item.id)} style={btnStyle}
-                    onMouseEnter={e => e.currentTarget.style.background = '#2a2a2a'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <span>{item.icon}</span>{item.label}
-                  </button>
+                  <MenuItem key={item.id} onClick={() => setView(item.id)}>
+                    <span style={{ fontSize: '14px', width: '18px' }}>{item.icon}</span>
+                    {item.label}
+                  </MenuItem>
                 ))}
-                <div style={{ borderTop: '1px solid #2a2a2a', marginTop: '6px', paddingTop: '6px' }}>
-                  <button onClick={() => { setOpen(false); onLogout() }} style={{ ...btnStyle, color: '#dc2626' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#2a2a2a'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <IconSignOut color="#dc2626" size={14} />Sign Out
-                  </button>
-                </div>
+              </div>
+
+              {/* Sign out */}
+              <div style={{ padding: '6px', borderTop: `1px solid ${t.border}` }}>
+                <MenuItem danger onClick={() => { setOpen(false); onLogout() }}>
+                  <IconSignOut color={t.danger} size={14} />
+                  Sign Out
+                </MenuItem>
               </div>
             </>
           )}
+
           {view === 'profile' && (
             <>
-              <div style={sectionHeader}>
-                <button onClick={() => setView('menu')} style={backBtn}>←</button>
-                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>My Profile</p>
-              </div>
+              {sectionHeader}
               <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {[
                   { label: 'Email', value: user.email },
                   { label: 'Market', value: 'Miami, FL' },
-                  { label: 'Plan', value: 'Early Access — Free', color: '#16a34a' },
                   { label: 'Scrape Schedule', value: '9:00 AM & 5:00 PM ET daily' },
                 ].map(item => (
                   <div key={item.label}>
-                    <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', margin: '0 0 4px 0' }}>{item.label}</p>
-                    <p style={{ color: item.color || '#fff', fontSize: '13px', margin: 0, wordBreak: 'break-all', fontWeight: item.color ? '600' : '400' }}>{item.value}</p>
+                    <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px 0' }}>{item.label}</p>
+                    <p style={{ color: t.textPrimary, fontSize: '13px', margin: 0, wordBreak: 'break-all' }}>{item.value}</p>
                   </div>
                 ))}
               </div>
             </>
           )}
+
           {view === 'notifications' && (
             <>
-              <div style={sectionHeader}>
-                <button onClick={() => setView('menu')} style={backBtn}>←</button>
-                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>Notification Settings</p>
-              </div>
-              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {sectionHeader}
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <NotificationToggle label="New Lead Alerts" desc="Email when new motivated sellers are found" defaultOn={true} />
                 <NotificationToggle label="Follow Up Reminders" desc="Daily 9am reminder for leads due today" defaultOn={true} />
                 <NotificationToggle label="Price Drop Alerts" desc="Notify when a listing drops in price" defaultOn={false} />
-                <p style={{ color: '#555', fontSize: '11px', margin: '4px 0 0 0' }}>Changes take effect on the next scrape cycle.</p>
+                <p style={{ color: t.textMuted, fontSize: '11px', margin: 0 }}>Changes take effect on the next scrape cycle.</p>
               </div>
             </>
           )}
+
           {view === 'support' && (
             <>
-              <div style={sectionHeader}>
-                <button onClick={() => setView('menu')} style={backBtn}>←</button>
-                <p style={{ color: '#fff', fontSize: '13px', fontWeight: '600', margin: 0 }}>Help & Support</p>
-              </div>
+              {sectionHeader}
               <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <p style={{ color: '#888', fontSize: '12px', margin: 0, lineHeight: '1.6' }}>Have a question or found a bug? Reach out and we'll get back to you within 24 hours.</p>
-                <a href="mailto:support@getyachtwatch.com" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: '#2a2a2a', borderRadius: '8px', color: '#2563eb', fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>
+                <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0, lineHeight: '1.6' }}>Have a question or found a bug? Reach out and we'll get back to you within 24 hours.</p>
+                <a href="mailto:support@getyachtwatch.com" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: t.overlay, borderRadius: t.radiusMd, color: t.accent, fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>
                   📧 support@getyachtwatch.com
                 </a>
-                <div style={{ background: '#2a2a2a', borderRadius: '8px', padding: '12px' }}>
-                  <p style={{ color: '#fff', fontSize: '12px', fontWeight: '600', margin: '0 0 8px 0' }}>Quick Tips</p>
+                <div style={{ background: t.overlay, borderRadius: t.radiusMd, padding: '12px' }}>
+                  <p style={{ color: t.textPrimary, fontSize: '12px', fontWeight: '600', margin: '0 0 8px 0' }}>Quick Tips</p>
                   {['Leads refresh at 9am and 5pm ET daily', 'Use Pipeline to track active conversations', 'Set follow up dates to get email reminders', 'Search by boat make, location, or title'].map(tip => (
-                    <p key={tip} style={{ color: '#888', fontSize: '11px', margin: '0 0 4px 0' }}>• {tip}</p>
+                    <p key={tip} style={{ color: t.textMuted, fontSize: '11px', margin: '0 0 4px 0' }}>• {tip}</p>
                   ))}
                 </div>
               </div>
@@ -154,59 +278,174 @@ function ProfileDropdown({ user, onLogout }) {
 }
 
 // ---------------------------------------------------------------------------
+// KPI STAT CARD
+// ---------------------------------------------------------------------------
+function KpiCard({ label, value, delta, deltaLabel, color }) {
+  const isPositive = delta > 0
+  const isNeutral = delta === 0
+  const deltaColor = isNeutral ? t.textMuted : isPositive ? t.success : t.danger
+  const deltaSymbol = isPositive ? '↑' : isNeutral ? '—' : '↓'
+  return (
+    <div style={{ background: t.surface, border: `1px solid ${t.border}`, borderRadius: t.radiusLg, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: 0 }}>
+      <p style={{ color: t.textMuted, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.07em', margin: 0, fontWeight: '500' }}>{label}</p>
+      <p style={{ color, fontSize: '28px', fontWeight: '800', margin: 0, lineHeight: 1, fontFeatureSettings: '"tnum"' }}>{value}</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ color: deltaColor, fontSize: '12px', fontWeight: '600' }}>{deltaSymbol} {Math.abs(delta)}</span>
+        <span style={{ color: t.textMuted, fontSize: '11px' }}>{deltaLabel}</span>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// SIDEBAR / BOTTOM NAV
+// ---------------------------------------------------------------------------
+function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
+  const [hovered, setHovered] = useState(false)
+  const navItems = [
+    { id: 'leads', label: 'Leads', Icon: IconLeads },
+    { id: 'pipeline', label: 'Pipeline', Icon: IconPipeline },
+    { id: 'analytics', label: 'Analytics', Icon: IconAnalytics },
+  ]
+
+  if (isMobile) {
+    return (
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: t.surface, borderTop: `1px solid ${t.border}`, display: 'flex', zIndex: 100 }}>
+        {navItems.map(({ id, label, Icon }) => (
+          <button key={id} onClick={() => setActivePage(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: t.font, color: activePage === id ? t.accent : t.textMuted, borderTop: activePage === id ? `2px solid ${t.accent}` : '2px solid transparent' }}>
+            <Icon color={activePage === id ? t.accent : t.textMuted} size={20} />
+            <span style={{ fontSize: '10px', marginTop: '2px' }}>{label}</span>
+          </button>
+        ))}
+        <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: t.font, color: t.textMuted, borderTop: '2px solid transparent' }} onClick={onLogout}>
+          <IconSignOut color={t.textMuted} size={20} />
+          <span style={{ fontSize: '10px', marginTop: '2px' }}>Out</span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      style={{ background: t.surface, borderRight: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', width: hovered ? '200px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Logo */}
+      <div style={{ padding: '14px', borderBottom: `1px solid ${t.border}`, height: '56px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '26px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', whiteSpace: 'nowrap', minWidth: '120px' }} />
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '8px 6px', overflowY: 'auto' }}>
+        {navItems.map(({ id, label, Icon }) => {
+          const active = activePage === id
+          return (
+            <button key={id} onClick={() => setActivePage(id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: t.radiusMd, cursor: 'pointer', border: 'none', background: active ? t.accentSubtle : 'transparent', color: active ? t.accent : t.textMuted, fontSize: '13px', fontWeight: active ? '600' : '500', fontFamily: t.font, width: '100%', textAlign: 'left', transition: 'background 0.1s, color 0.1s', justifyContent: hovered ? 'flex-start' : 'center', borderLeft: active ? `2px solid ${t.accent}` : '2px solid transparent', marginLeft: '-2px', paddingLeft: active ? '10px' : '10px' }}>
+              <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><Icon color={active ? t.accent : t.textMuted} size={17} /></span>
+              {hovered && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>{label}</span>}
+            </button>
+          )
+        })}
+      </nav>
+
+      {/* User block pinned to bottom */}
+      <div style={{ borderTop: `1px solid ${t.border}`, padding: '10px 6px', flexShrink: 0 }}>
+        <button
+          onClick={onLogout}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: t.radiusMd, cursor: 'pointer', border: 'none', background: 'transparent', width: '100%', textAlign: 'left', fontFamily: t.font, justifyContent: hovered ? 'flex-start' : 'center', transition: 'background 0.1s' }}
+          onMouseEnter={e => e.currentTarget.style.background = t.overlay}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <Avatar email={user?.email} size={28} />
+          {hovered && (
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <p style={{ color: t.textPrimary, fontSize: '12px', fontWeight: '600', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.email?.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              </p>
+              <p style={{ color: t.textMuted, fontSize: '10px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
+            </div>
+          )}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // LANDING PAGE
 // ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
   return (
-    <div style={styles.landing}>
-      <div style={{ ...styles.nav, padding: isMobile ? '16px 20px' : '20px 60px' }}>
+    <div style={{ background: t.bg, minHeight: '100vh', color: t.textPrimary, fontFamily: t.font }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '16px 20px' : '20px 60px', borderBottom: `1px solid ${t.borderSubtle}`, position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '36px' : '48px', objectFit: 'contain' }} />
-        <button style={styles.navButton} onClick={() => navigate('/login')}>Sign In</button>
+        <button style={{ background: 'transparent', border: `1px solid rgba(255,255,255,0.15)`, borderRadius: t.radiusMd, color: t.textPrimary, padding: '8px 16px', cursor: 'pointer', fontSize: '13px', fontFamily: t.font }} onClick={() => navigate('/login')}>Sign In</button>
       </div>
-      <div style={{ ...styles.hero, backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(10,10,10,1)), url(/hero-yacht.png)', backgroundSize: 'cover', backgroundPosition: 'center', padding: isMobile ? '120px 24px 60px' : '160px 60px' }}>
-        <div style={{ ...styles.heroContent, maxWidth: isMobile ? '100%' : '720px' }}>
-          <div style={styles.heroBadge}>Motivated Seller Intelligence</div>
-          <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? '32px' : '52px' }}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
-          <p style={{ ...styles.heroSubtitle, fontSize: isMobile ? '15px' : '18px' }}>The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.</p>
-          <div style={{ ...styles.heroButtons, flexDirection: isMobile ? 'column' : 'row' }}>
-            <button style={{ ...styles.heroCta, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/signup')}>Get Early Access</button>
-            <button style={{ ...styles.heroSecondary, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/login')}>Sign In</button>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(13,13,15,1)), url(/hero-yacht.png)', backgroundSize: 'cover', backgroundPosition: 'center', padding: isMobile ? '120px 24px 60px' : '160px 60px' }}>
+        <div style={{ maxWidth: isMobile ? '100%' : '720px', position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'inline-block', background: t.accentSubtle, border: `1px solid ${t.accent}`, color: '#93c5fd', fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: t.radiusFull, marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Motivated Seller Intelligence</div>
+          <h1 style={{ fontSize: isMobile ? '32px' : '52px', fontWeight: '800', lineHeight: '1.1', margin: '0 0 20px 0', color: t.textPrimary }}>Find Motivated Boat Sellers<br />Before Anyone Else Does</h1>
+          <p style={{ fontSize: isMobile ? '15px' : '18px', color: 'rgba(240,240,242,0.65)', lineHeight: '1.7', margin: '0 0 32px 0' }}>The best listings never hit the MLS. They're sitting on Facebook Marketplace and Craigslist, posted by owners who need out fast. We find them before anyone else does and put them in your inbox twice a day.</p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexDirection: isMobile ? 'column' : 'row' }}>
+            <button style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '14px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', width: isMobile ? '100%' : 'auto', fontFamily: t.font }} onClick={() => navigate('/signup')}>Get Early Access</button>
+            <button style={{ background: 'transparent', color: t.textPrimary, border: `1px solid rgba(255,255,255,0.15)`, borderRadius: t.radiusMd, padding: '14px 28px', fontSize: '15px', cursor: 'pointer', width: isMobile ? '100%' : 'auto', fontFamily: t.font }} onClick={() => navigate('/login')}>Sign In</button>
           </div>
         </div>
       </div>
-      <div style={{ ...styles.section, padding: isMobile ? '60px 24px' : '80px 60px' }}>
-        <h2 style={styles.sectionTitle}>How It Works</h2>
-        <div style={{ ...styles.steps, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '32px' : '40px' }}>
+
+      <div style={{ padding: isMobile ? '60px 24px' : '80px 60px', borderTop: `1px solid ${t.borderSubtle}` }}>
+        <h2 style={{ fontSize: '28px', fontWeight: '700', textAlign: 'center', margin: '0 0 48px 0' }}>How It Works</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '32px' : '40px', maxWidth: '900px', margin: '0 auto' }}>
           {[
             { num: '01', title: 'We Scrape', text: 'We scan Facebook Marketplace, Craigslist, and OfferUp every morning and afternoon for private sellers listing boats over $50k in your market.' },
             { num: '02', title: 'We Filter', text: 'We read every description looking for the signals you already know — moving out of state, health reasons, behind on slip fees, repo, estate sales.' },
             { num: '03', title: 'You Close', text: 'You get an email the moment a lead comes in. Open the dashboard, read the description, and reach out before anyone else knows it exists.' },
-          ].map(s => <div key={s.num} style={styles.step}><div style={styles.stepNumber}>{s.num}</div><h3 style={styles.stepTitle}>{s.title}</h3><p style={styles.stepText}>{s.text}</p></div>)}
+          ].map(s => (
+            <div key={s.num} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '40px', fontWeight: '800', color: t.borderSubtle, marginBottom: '12px' }}>{s.num}</div>
+              <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '10px', color: t.textPrimary }}>{s.title}</h3>
+              <p style={{ fontSize: '14px', color: t.textSecondary, lineHeight: '1.7', margin: 0 }}>{s.text}</p>
+            </div>
+          ))}
         </div>
       </div>
-      <div style={{ ...styles.valueSection, gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', padding: isMobile ? '40px 24px' : '80px 60px' }}>
+
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '16px', padding: isMobile ? '40px 24px' : '80px 60px', borderTop: `1px solid ${t.borderSubtle}` }}>
         {[
           { icon: '📍', title: 'Three Platforms', text: 'Facebook has the volume. Craigslist has the hidden gems. OfferUp catches what the others miss.' },
           { icon: '🚨', title: 'Motivated Seller Detection', text: "We're not just looking for boats for sale. We're looking for owners who need to sell." },
           { icon: '📧', title: 'Instant Email Alerts', text: 'The broker who calls first wins the listing. We make sure that broker is you.' },
           { icon: '📋', title: 'Built-in CRM', text: 'Track every conversation, set follow up reminders, and add notes on each seller.' },
-        ].map(v => <div key={v.title} style={styles.valueCard}><div style={styles.valueIcon}>{v.icon}</div><h3 style={styles.valueTitle}>{v.title}</h3><p style={styles.valueText}>{v.text}</p></div>)}
+        ].map(v => (
+          <div key={v.title} style={{ background: t.surface, borderRadius: t.radiusXl, padding: '24px', border: `1px solid ${t.border}` }}>
+            <div style={{ fontSize: '28px', marginBottom: '12px' }}>{v.icon}</div>
+            <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '10px', color: t.textPrimary }}>{v.title}</h3>
+            <p style={{ fontSize: '13px', color: t.textSecondary, lineHeight: '1.7', margin: 0 }}>{v.text}</p>
+          </div>
+        ))}
       </div>
-      <div style={{ ...styles.ctaSection, padding: isMobile ? '60px 24px' : '100px 60px' }}>
-        <h2 style={{ ...styles.ctaTitle, fontSize: isMobile ? '28px' : '40px' }}>Built by brokers, for brokers.</h2>
-        <p style={styles.ctaSubtitle}>Stop scrolling Marketplace manually. Let the leads come to you.</p>
-        <button style={{ ...styles.heroCta, width: isMobile ? '100%' : 'auto' }} onClick={() => navigate('/signup')}>Get Early Access</button>
+
+      <div style={{ textAlign: 'center', padding: isMobile ? '60px 24px' : '100px 60px', borderTop: `1px solid ${t.borderSubtle}` }}>
+        <h2 style={{ fontSize: isMobile ? '28px' : '40px', fontWeight: '800', margin: '0 0 14px 0' }}>Built by brokers, for brokers.</h2>
+        <p style={{ fontSize: '15px', color: t.textSecondary, margin: '0 0 32px 0' }}>Stop scrolling Marketplace manually. Let the leads come to you.</p>
+        <button style={{ background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '14px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer', width: isMobile ? '100%' : 'auto', fontFamily: t.font }} onClick={() => navigate('/signup')}>Get Early Access</button>
       </div>
-      <div style={{ ...styles.footer, padding: isMobile ? '24px' : '32px 60px' }}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.6 }} />
-        <p style={styles.footerText}>© 2025 YachtWatch. Built for yacht brokers.</p>
+
+      <div style={{ padding: isMobile ? '24px' : '32px 60px', borderTop: `1px solid ${t.borderSubtle}`, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '36px', objectFit: 'contain', marginBottom: '12px', opacity: 0.4 }} />
+        <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>© 2025 YachtWatch. Built for yacht brokers.</p>
       </div>
     </div>
   )
 }
 
+// ---------------------------------------------------------------------------
+// AUTH PAGES
+// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -220,15 +459,15 @@ function LoginPage() {
     setLoading(false)
   }
   return (
-    <div style={styles.authContainer}>
-      <div style={styles.authBox}>
+    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: t.font, padding: '20px' }}>
+      <div style={{ background: t.surface, padding: '32px', borderRadius: t.radiusXl, width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px', border: `1px solid ${t.border}` }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
-        <h2 style={styles.authTitle}>Sign In</h2>
-        <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-        <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
-        {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} onClick={handleLogin} disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
-        <p style={styles.authSwitch}>Don't have an account?{' '}<span style={styles.authLink} onClick={() => navigate('/signup')}>Sign up</span></p>
+        <h2 style={{ color: t.textPrimary, fontSize: '20px', margin: 0, textAlign: 'center' }}>Sign In</h2>
+        <input style={inputStyle} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        <input style={inputStyle} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        {error && <p style={{ color: t.danger, fontSize: '13px', margin: 0 }}>{error}</p>}
+        <button style={primaryBtnStyle} onClick={handleLogin} disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+        <p style={{ color: t.textMuted, fontSize: '13px', textAlign: 'center', margin: 0 }}>Don't have an account?{' '}<span style={{ color: t.accent, cursor: 'pointer' }} onClick={() => navigate('/signup')}>Sign up</span></p>
       </div>
     </div>
   )
@@ -256,86 +495,35 @@ function SignupPage() {
     setSuccess(true); setLoading(false)
   }
   if (success) return (
-    <div style={styles.authContainer}>
-      <div style={styles.authBox}>
+    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: t.font, padding: '20px' }}>
+      <div style={{ background: t.surface, padding: '32px', borderRadius: t.radiusXl, width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px', border: `1px solid ${t.border}` }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto' }} />
-        <h2 style={styles.authTitle}>You're all set 🚤</h2>
-        <p style={{ color: '#888', fontSize: '14px', textAlign: 'center', marginBottom: '24px' }}>Welcome to YachtWatch. Leads will start hitting your inbox at 9am and 5pm daily.</p>
-        <button style={styles.button} onClick={() => navigate('/login')}>Go to Dashboard</button>
+        <h2 style={{ color: t.textPrimary, fontSize: '20px', margin: 0, textAlign: 'center' }}>You're all set 🚤</h2>
+        <p style={{ color: t.textSecondary, fontSize: '14px', textAlign: 'center', margin: 0 }}>Welcome to YachtWatch. Leads will start hitting your inbox at 9am and 5pm daily.</p>
+        <button style={primaryBtnStyle} onClick={() => navigate('/login')}>Go to Dashboard</button>
       </div>
     </div>
   )
   return (
-    <div style={styles.authContainer}>
-      <div style={styles.authBox}>
+    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: t.font, padding: '20px' }}>
+      <div style={{ background: t.surface, padding: '32px', borderRadius: t.radiusXl, width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px', border: `1px solid ${t.border}` }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '52px', objectFit: 'contain', margin: '0 auto', cursor: 'pointer' }} onClick={() => navigate('/')} />
-        <h2 style={styles.authTitle}>Get Early Access</h2>
-        <p style={{ color: '#888', fontSize: '13px', textAlign: 'center', marginBottom: '8px' }}>Select your market and we'll start surfacing leads immediately.</p>
+        <h2 style={{ color: t.textPrimary, fontSize: '20px', margin: 0, textAlign: 'center' }}>Get Early Access</h2>
+        <p style={{ color: t.textMuted, fontSize: '13px', textAlign: 'center', margin: 0 }}>Select your market and we'll start surfacing leads immediately.</p>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} />
-          <input style={{ ...styles.input, width: '50%' }} type="text" placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} />
+          <input style={{ ...inputStyle, width: '50%' }} type="text" placeholder="First name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+          <input style={{ ...inputStyle, width: '50%' }} type="text" placeholder="Last name" value={lastName} onChange={e => setLastName(e.target.value)} />
         </div>
-        <input style={styles.input} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
-        <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
-        <select style={{ ...styles.input, cursor: 'pointer' }} value={selectedCity} onChange={e => setSelectedCity(e.target.value)}>
+        <input style={inputStyle} type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+        <input style={inputStyle} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+        <select style={{ ...inputStyle, cursor: 'pointer' }} value={selectedCity} onChange={e => setSelectedCity(e.target.value)}>
           <option value="">Select your market</option>
           {cities.map(city => <option key={city.id} value={city.id}>{city.city_label}, {city.state}</option>)}
         </select>
-        {error && <p style={styles.error}>{error}</p>}
-        <button style={styles.button} onClick={handleSignup} disabled={loading}>{loading ? 'Creating account...' : 'Request Access'}</button>
-        <p style={styles.authSwitch}>Already have an account?{' '}<span style={styles.authLink} onClick={() => navigate('/login')}>Sign in</span></p>
+        {error && <p style={{ color: t.danger, fontSize: '13px', margin: 0 }}>{error}</p>}
+        <button style={primaryBtnStyle} onClick={handleSignup} disabled={loading}>{loading ? 'Creating account...' : 'Request Access'}</button>
+        <p style={{ color: t.textMuted, fontSize: '13px', textAlign: 'center', margin: 0 }}>Already have an account?{' '}<span style={{ color: t.accent, cursor: 'pointer' }} onClick={() => navigate('/login')}>Sign in</span></p>
       </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// SIDEBAR / BOTTOM NAV
-// ---------------------------------------------------------------------------
-function Sidebar({ activePage, setActivePage, onLogout, isMobile }) {
-  const [hovered, setHovered] = useState(false)
-  const navItems = [
-    { id: 'leads', label: 'Leads', Icon: IconLeads },
-    { id: 'pipeline', label: 'Pipeline', Icon: IconPipeline },
-    { id: 'analytics', label: 'Analytics', Icon: IconAnalytics },
-  ]
-  if (isMobile) {
-    return (
-      <div style={styles.bottomNav}>
-        {navItems.map(({ id, label, Icon }) => (
-          <button key={id} onClick={() => setActivePage(id)} style={{ ...styles.bottomNavItem, color: activePage === id ? '#2563eb' : '#555', borderTop: activePage === id ? '2px solid #2563eb' : '2px solid transparent' }}>
-            <Icon color={activePage === id ? '#2563eb' : '#555'} size={20} />
-            <span style={{ fontSize: '10px', marginTop: '2px' }}>{label}</span>
-          </button>
-        ))}
-        <button style={{ ...styles.bottomNavItem, color: '#555', borderTop: '2px solid transparent' }} onClick={onLogout}>
-          <IconSignOut color="#555" size={20} />
-          <span style={{ fontSize: '10px', marginTop: '2px' }}>Out</span>
-        </button>
-      </div>
-    )
-  }
-  return (
-    <div
-      style={{ ...styles.sidebar, width: hovered ? '180px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div style={styles.sidebarLogoWrap}>
-        <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.2s ease', whiteSpace: 'nowrap' }} />
-      </div>
-      <nav style={styles.sidebarNav}>
-        {navItems.map(({ id, label, Icon }) => (
-          <button key={id} onClick={() => setActivePage(id)} style={{ ...styles.sidebarItem, background: activePage === id ? '#1e3a5f' : 'transparent', color: activePage === id ? '#60a5fa' : '#888', borderLeft: activePage === id ? '3px solid #2563eb' : '3px solid transparent', justifyContent: hovered ? 'flex-start' : 'center' }}>
-            <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><Icon color={activePage === id ? '#60a5fa' : '#888'} size={17} /></span>
-            {hovered && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', marginLeft: '10px' }}>{label}</span>}
-          </button>
-        ))}
-      </nav>
-      <button style={{ ...styles.sidebarLogout, justifyContent: hovered ? 'flex-start' : 'center' }} onClick={onLogout}>
-        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}><IconSignOut color="#555" size={15} /></span>
-        {hovered && <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>Sign Out</span>}
-      </button>
     </div>
   )
 }
@@ -367,11 +555,11 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
     setSavingNotes(false); setEditingNotes(false)
   }
 
-  const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
+  const statusColors = { new: t.accent, reached_out: t.success, not_interested: t.danger, follow_up: t.warning, connected: t.purple }
   const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
-  const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
+  const platformColors = { facebook: t.facebook, craigslist: t.craigslist, offerup: t.offerup }
   const platform = lead.platform || 'facebook'
-  const platformColor = platformColors[platform] || '#1d4ed8'
+  const platformColor = platformColors[platform] || t.facebook
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
   const hasKeywords = lead.matched_keywords?.length > 0
   const hasPriceSignal = lead.discount_percent >= 20
@@ -386,83 +574,76 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
   }
 
   return (
-    <div style={{ ...styles.card, borderTop: `3px solid ${statusColors[status] || '#2563eb'}` }}>
-      <div style={{ ...styles.platformBanner, background: platformColor }}>{platformLabel}</div>
+    <div style={{ background: t.surface, borderRadius: t.radiusXl, overflow: 'hidden', border: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', borderTop: `2px solid ${statusColors[status] || t.accent}` }}>
+      <div style={{ background: platformColor, padding: '4px 12px' }}>
+        <span style={{ color: '#fff', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{platformLabel}</span>
+      </div>
       {(hasKeywords || hasPriceSignal) && (
-        <div style={styles.alertBanner}>
-          {hasKeywords && <span style={styles.alertPill}>🚨 {lead.matched_keywords.join(' · ')}</span>}
-          {hasPriceSignal && <span style={styles.pricePill}>📉 {lead.discount_percent}% below avg</span>}
+        <div style={{ background: t.bg, borderBottom: `1px solid ${t.border}`, padding: '6px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          {hasKeywords && <span style={{ background: 'rgba(127,29,29,0.5)', color: '#fca5a5', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: t.radiusFull, border: '1px solid rgba(220,38,38,0.3)' }}>🚨 {lead.matched_keywords.join(' · ')}</span>}
+          {hasPriceSignal && <span style={{ background: t.accentSubtle, color: '#93c5fd', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: t.radiusFull, border: `1px solid rgba(37,99,235,0.3)` }}>📉 {lead.discount_percent}% below avg</span>}
         </div>
       )}
       {photos.length > 0 && (
         <div style={{ position: 'relative' }}>
-          <img src={photos[photoIndex]} alt={lead.title} style={styles.cardImage} />
+          <img src={photos[photoIndex]} alt={lead.title} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
           {photos.length > 1 && (
             <>
-              <button onClick={() => setPhotoIndex(i => Math.max(0, i - 1))} style={{ ...styles.photoBtn, left: '8px', opacity: photoIndex === 0 ? 0.3 : 1 }} disabled={photoIndex === 0}>‹</button>
-              <button onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))} style={{ ...styles.photoBtn, right: '8px', opacity: photoIndex === photos.length - 1 ? 0.3 : 1 }} disabled={photoIndex === photos.length - 1}>›</button>
-              <div style={styles.photoCounter}>{photoIndex + 1} / {photos.length}</div>
+              <button onClick={() => setPhotoIndex(i => Math.max(0, i - 1))} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', left: '8px', background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', fontSize: '20px', width: '30px', height: '30px', borderRadius: t.radiusFull, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: photoIndex === 0 ? 0.3 : 1 }} disabled={photoIndex === 0}>‹</button>
+              <button onClick={() => setPhotoIndex(i => Math.min(photos.length - 1, i + 1))} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '8px', background: 'rgba(0,0,0,0.7)', border: 'none', color: '#fff', fontSize: '20px', width: '30px', height: '30px', borderRadius: t.radiusFull, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: photoIndex === photos.length - 1 ? 0.3 : 1 }} disabled={photoIndex === photos.length - 1}>›</button>
+              <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: t.radiusFull }}>{photoIndex + 1} / {photos.length}</div>
             </>
           )}
         </div>
       )}
-      <div style={styles.cardBody}>
-        <h3 style={styles.cardTitle}>{lead.title}</h3>
-        <span style={styles.price}>${lead.price?.toLocaleString()}</span>
-        <div style={styles.checklist}>
-          <CheckItem label="Year" value={lead.boat_year} />
-          <CheckItem label="Make" value={lead.boat_make} />
-          <CheckItem label="Model" value={lead.boat_model} />
-          <CheckItem label="Engine Hours" value={lead.engine_hours} />
-          <CheckItem label="Trailer" value={lead.has_trailer} />
+      <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <h3 style={{ color: t.textPrimary, fontSize: '14px', margin: 0, fontWeight: '600', lineHeight: '1.4' }}>{lead.title}</h3>
+        <span style={{ color: t.textPrimary, fontSize: '22px', fontWeight: '800', fontFeatureSettings: '"tnum"' }}>${lead.price?.toLocaleString()}</span>
+        <div style={{ background: t.elevated, borderRadius: t.radiusMd, padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {[['Year', lead.boat_year], ['Make', lead.boat_make], ['Model', lead.boat_model], ['Engine Hours', lead.engine_hours], ['Trailer', lead.has_trailer]].filter(([, v]) => v).map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
+              <span style={{ color: t.textMuted, minWidth: '90px' }}>{label}</span>
+              <span style={{ color: t.textPrimary, fontWeight: '500' }}>{value}</span>
+            </div>
+          ))}
         </div>
-        {lead.location && <p style={styles.cardMeta}>📍 {lead.location}</p>}
-        {lead.listing_date && <p style={styles.cardMeta}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>}
-        <p style={styles.cardMeta}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
-        <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link}>View Listing →</a>
-        <div style={styles.notesSection}>
+        {lead.location && <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0 }}>📍 {lead.location}</p>}
+        {lead.listing_date && <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>📅 Listed: {getDaysAgo(lead.listing_date)}</p>}
+        <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>🕐 Found: {new Date(lead.posted_at).toLocaleDateString()}</p>
+        <a href={lead.url} target="_blank" rel="noreferrer" style={{ color: t.accent, fontSize: '13px', textDecoration: 'none', fontWeight: '600' }}>View Listing →</a>
+        <div style={{ marginTop: '2px' }}>
           {editingNotes ? (
             <>
-              <textarea style={styles.notesInput} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
-              <div style={styles.notesButtons}>
-                <button onClick={handleSaveNotes} style={styles.saveBtn} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
-                <button onClick={() => setEditingNotes(false)} style={styles.cancelBtn}>Cancel</button>
+              <textarea style={{ ...inputStyle, width: '100%', resize: 'vertical', boxSizing: 'border-box' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
+              <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                <button onClick={handleSaveNotes} style={saveBtnStyle} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
+                <button onClick={() => setEditingNotes(false)} style={cancelBtnStyle}>Cancel</button>
               </div>
             </>
           ) : (
-            <div onClick={() => setEditingNotes(true)} style={styles.notesDisplay}>
-              {notes ? <p style={styles.notesText}>📝 {notes}</p> : <p style={styles.notesPlaceholder}>+ Add notes</p>}
+            <div onClick={() => setEditingNotes(true)} style={{ cursor: 'pointer', borderRadius: t.radiusMd, padding: '6px 8px', border: `1px dashed ${t.border}` }}>
+              {notes ? <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0 }}>📝 {notes}</p> : <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>+ Add notes</p>}
             </div>
           )}
         </div>
-        <div style={styles.statusRow}>
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '4px' }}>
           {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
             <button key={s} onClick={() => { handleStatus(s); if (s === 'follow_up') setShowFollowUp(true) }}
-              style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}>
+              style={{ border: `1px solid ${statusColors[s]}`, borderRadius: t.radiusMd, padding: '4px 8px', fontSize: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font, background: status === s ? statusColors[s] : 'transparent', color: status === s ? '#fff' : statusColors[s], transition: 'all 0.1s' }}>
               {statusLabels[s]}
             </button>
           ))}
         </div>
         {showFollowUp && (
-          <div style={styles.followUpRow}>
-            <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={styles.dateInput} />
-            <button onClick={handleFollowUp} style={styles.saveBtn}>Save</button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={dateInputStyle} />
+            <button onClick={handleFollowUp} style={saveBtnStyle}>Save</button>
           </div>
         )}
         {followUpDate && status === 'follow_up' && (
-          <p style={{ ...styles.cardMeta, color: '#d97706' }}>📅 Follow up: {new Date(followUpDate).toLocaleDateString()}</p>
+          <p style={{ color: t.warning, fontSize: '12px', margin: 0 }}>📅 Follow up: {new Date(followUpDate).toLocaleDateString()}</p>
         )}
       </div>
-    </div>
-  )
-}
-
-function CheckItem({ label, value }) {
-  if (!value) return null
-  return (
-    <div style={styles.checkItem}>
-      <span style={styles.checkLabel}>{label}:</span>
-      <span style={styles.checkValue}>{value}</span>
     </div>
   )
 }
@@ -478,96 +659,88 @@ function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
   const [savingNotes, setSavingNotes] = useState(false)
   const [expanded, setExpanded] = useState(false)
 
-  const handleStatus = async (newStatus) => {
-    setStatus(newStatus)
-    await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus })
-    if (onActionChange) onActionChange()
-  }
+  const handleStatus = async (newStatus) => { setStatus(newStatus); await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus }); if (onActionChange) onActionChange() }
   const handleFollowUp = async () => { await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate }) }
-  const handleSaveNotes = async () => {
-    setSavingNotes(true)
-    await upsertBrokerAction(brokerEmail, lead.listing_id, { notes })
-    setSavingNotes(false); setEditingNotes(false)
-  }
+  const handleSaveNotes = async () => { setSavingNotes(true); await upsertBrokerAction(brokerEmail, lead.listing_id, { notes }); setSavingNotes(false); setEditingNotes(false) }
 
-  const statusColors = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
+  const statusColors = { new: t.accent, reached_out: t.success, not_interested: t.danger, follow_up: t.warning, connected: t.purple }
   const statusLabels = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
-  const platformColors = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
+  const platformColors = { facebook: t.facebook, craigslist: t.craigslist, offerup: t.offerup }
   const platform = lead.platform || 'facebook'
-  const platformColor = platformColors[platform] || '#1d4ed8'
+  const platformColor = platformColors[platform] || t.facebook
   const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
   const photo = lead.photos?.[0] || lead.image_url
 
   const getFollowUpColor = () => {
-    if (!followUpDate) return '#888'
+    if (!followUpDate) return t.textMuted
     const today = new Date().toISOString().split('T')[0]
-    if (followUpDate < today) return '#dc2626'
-    if (followUpDate === today) return '#d97706'
-    return '#16a34a'
+    if (followUpDate < today) return t.danger
+    if (followUpDate === today) return t.warning
+    return t.success
   }
 
   return (
     <>
-      <div style={{ ...styles.pipelineRow, borderLeft: `3px solid ${statusColors[status] || '#2563eb'}` }} onClick={() => setExpanded(!expanded)}>
-        <div style={styles.pipelinePhoto}>
-          {photo ? <img src={photo} alt={lead.title} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '6px' }} />
-            : <div style={{ width: '56px', height: '56px', background: '#2a2a2a', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555', fontSize: '20px' }}>🚤</div>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 20px', borderBottom: `1px solid ${t.borderSubtle}`, cursor: 'pointer', borderLeft: `2px solid ${statusColors[status] || t.accent}` }} onClick={() => setExpanded(!expanded)}>
+        <div style={{ flexShrink: 0 }}>
+          {photo ? <img src={photo} alt={lead.title} style={{ width: '54px', height: '54px', objectFit: 'cover', borderRadius: t.radiusMd }} />
+            : <div style={{ width: '54px', height: '54px', background: t.elevated, borderRadius: t.radiusMd, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMuted, fontSize: '20px' }}>🚤</div>}
         </div>
         <div style={{ flex: 2, minWidth: isMobile ? '120px' : 'auto' }}>
-          <p style={{ color: '#fff', fontWeight: '600', fontSize: '13px', margin: '0 0 3px 0' }}>{lead.title}</p>
-          <p style={{ color: '#888', fontSize: '11px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
+          <p style={{ color: t.textPrimary, fontWeight: '600', fontSize: '13px', margin: '0 0 3px 0' }}>{lead.title}</p>
+          <p style={{ color: t.textSecondary, fontSize: '11px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ color: '#fff', fontWeight: '700', fontSize: '14px', margin: 0 }}>${lead.price?.toLocaleString()}</p>
-          <div style={{ display: 'inline-block', background: platformColor, borderRadius: '4px', padding: '2px 5px', fontSize: '9px', color: '#fff', fontWeight: '700', marginTop: '3px' }}>{platformLabel}</div>
+          <p style={{ color: t.textPrimary, fontWeight: '700', fontSize: '14px', margin: 0, fontFeatureSettings: '"tnum"' }}>${lead.price?.toLocaleString()}</p>
+          <div style={{ display: 'inline-block', background: platformColor, borderRadius: t.radiusSm, padding: '2px 5px', fontSize: '9px', color: '#fff', fontWeight: '700', marginTop: '3px' }}>{platformLabel}</div>
         </div>
         {!isMobile && (
           <>
-            <div style={{ flex: 1 }}><span style={{ background: statusColors[status], color: '#fff', borderRadius: '6px', padding: '3px 8px', fontSize: '10px', fontWeight: '700' }}>{statusLabels[status]}</span></div>
-            <div style={{ flex: 1 }}>{followUpDate ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p> : <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>No follow up</p>}</div>
-            <div style={{ flex: 2 }}><p style={{ color: '#888', fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{notes || '+ Add notes'}</p></div>
+            <div style={{ flex: 1 }}><span style={{ background: statusColors[status], color: '#fff', borderRadius: t.radiusSm, padding: '3px 8px', fontSize: '10px', fontWeight: '700' }}>{statusLabels[status]}</span></div>
+            <div style={{ flex: 1 }}>{followUpDate ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p> : <p style={{ color: t.textMuted, fontSize: '11px', margin: 0 }}>No follow up</p>}</div>
+            <div style={{ flex: 2 }}><p style={{ color: t.textSecondary, fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{notes || '+ Add notes'}</p></div>
           </>
         )}
-        <div style={{ color: '#555', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</div>
+        <div style={{ color: t.textMuted, fontSize: '11px' }}>{expanded ? '▲' : '▼'}</div>
       </div>
       {expanded && (
-        <div style={{ ...styles.pipelineExpanded, paddingLeft: isMobile ? '16px' : '100px' }}>
+        <div style={{ background: t.bg, padding: '16px 20px 20px', borderBottom: `1px solid ${t.borderSubtle}`, paddingLeft: isMobile ? '16px' : '100px' }}>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <div style={{ width: '100%' }}>
-              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Status</p>
+              <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Status</p>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
                   <button key={s} onClick={e => { e.stopPropagation(); handleStatus(s) }}
-                    style={{ ...styles.statusBtn, background: status === s ? statusColors[s] : 'transparent', borderColor: statusColors[s], color: status === s ? '#fff' : statusColors[s] }}>
-                    {statusLabels[s]}
+                    style={{ border: `1px solid ${statusColors[s]}`, borderRadius: t.radiusMd, padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font, background: status === s ? statusColors[s] : 'transparent', color: status === s ? '#fff' : statusColors[s] }}>
+                    {['reached_out', 'follow_up', 'connected', 'not_interested'].map(x => ({ [x]: { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }[x] }))[0][s]}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Follow Up Date</p>
+              <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Follow Up Date</p>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={styles.dateInput} onClick={e => e.stopPropagation()} />
-                <button onClick={e => { e.stopPropagation(); handleFollowUp() }} style={styles.saveBtn}>Save</button>
+                <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={dateInputStyle} onClick={e => e.stopPropagation()} />
+                <button onClick={e => { e.stopPropagation(); handleFollowUp() }} style={saveBtnStyle}>Save</button>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <a href={lead.url} target="_blank" rel="noreferrer" style={styles.link} onClick={e => e.stopPropagation()}>View Listing →</a>
+              <a href={lead.url} target="_blank" rel="noreferrer" style={{ color: t.accent, fontSize: '13px', textDecoration: 'none', fontWeight: '600' }} onClick={e => e.stopPropagation()}>View Listing →</a>
             </div>
           </div>
           <div style={{ marginTop: '16px' }}>
-            <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', marginBottom: '8px' }}>Notes</p>
+            <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Notes</p>
             {editingNotes ? (
               <div onClick={e => e.stopPropagation()}>
-                <textarea style={{ ...styles.notesInput, width: '100%' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
+                <textarea style={{ ...inputStyle, width: '100%', resize: 'vertical', boxSizing: 'border-box' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
                 <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                  <button onClick={e => { e.stopPropagation(); handleSaveNotes() }} style={styles.saveBtn} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
-                  <button onClick={e => { e.stopPropagation(); setEditingNotes(false) }} style={styles.cancelBtn}>Cancel</button>
+                  <button onClick={e => { e.stopPropagation(); handleSaveNotes() }} style={saveBtnStyle} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
+                  <button onClick={e => { e.stopPropagation(); setEditingNotes(false) }} style={cancelBtnStyle}>Cancel</button>
                 </div>
               </div>
             ) : (
-              <div onClick={e => { e.stopPropagation(); setEditingNotes(true) }} style={{ ...styles.notesDisplay, width: '100%' }}>
-                {notes ? <p style={styles.notesText}>📝 {notes}</p> : <p style={styles.notesPlaceholder}>+ Add notes</p>}
+              <div onClick={e => { e.stopPropagation(); setEditingNotes(true) }} style={{ cursor: 'pointer', borderRadius: t.radiusMd, padding: '6px 8px', border: `1px dashed ${t.border}`, width: '100%', boxSizing: 'border-box' }}>
+                {notes ? <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0 }}>📝 {notes}</p> : <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>+ Add notes</p>}
               </div>
             )}
           </div>
@@ -624,18 +797,18 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
     })
 
   return (
-    <div style={styles.pageContent}>
-      <div style={{ ...styles.filterBar, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', padding: isMobile ? '12px 16px' : '16px 32px' }}>
-        <div style={styles.tabs}>
+    <div style={{ flex: 1, overflowY: 'auto', color: t.textPrimary }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '12px 16px' : '14px 28px', borderBottom: `1px solid ${t.border}`, gap: '12px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center' }}>
+        <div style={{ display: 'flex', gap: '6px' }}>
           {[{ id: 'new', label: 'New Leads' }, { id: 'not_interested', label: 'Not Interested' }].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ ...styles.tab, background: activeTab === tab.id ? '#2563eb' : 'transparent', color: activeTab === tab.id ? '#fff' : '#888', padding: isMobile ? '6px 12px' : '8px 16px', fontSize: isMobile ? '12px' : '13px' }}>
+              style={{ background: activeTab === tab.id ? t.accent : 'transparent', color: activeTab === tab.id ? '#fff' : t.textMuted, border: `1px solid ${activeTab === tab.id ? t.accent : t.border}`, borderRadius: t.radiusMd, padding: isMobile ? '6px 12px' : '7px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: t.font, transition: 'all 0.1s' }}>
               {tab.label}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: isMobile ? '8px' : '0' }}>
-          <select style={{ ...styles.filterSelect, fontSize: '12px' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <select style={selectStyle} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Newest Found</option>
             <option value="oldest_found">Oldest Found</option>
             <option value="price_low">Price Low → High</option>
@@ -646,17 +819,17 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
             <option value="oldest_listed">Oldest Listed</option>
             <option value="most_discounted">Most Discounted</option>
           </select>
-          <select style={{ ...styles.filterSelect, fontSize: '12px' }} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
+          <select style={selectStyle} value={platformFilter} onChange={e => setPlatformFilter(e.target.value)}>
             <option value="all">All Platforms</option>
             <option value="facebook">Facebook</option>
             <option value="craigslist">Craigslist</option>
             <option value="offerup">OfferUp</option>
           </select>
-          <input style={{ ...styles.filterInput, width: '80px' }} type="number" placeholder="Min $" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
-          <input style={{ ...styles.filterInput, width: '80px' }} type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
-          <input style={{ ...styles.filterInput, width: '72px' }} type="number" placeholder="Min yr" value={minYear} onChange={e => setMinYear(e.target.value)} />
-          <input style={{ ...styles.filterInput, width: '72px' }} type="number" placeholder="Max yr" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
-          <select style={{ ...styles.filterSelect, fontSize: '12px' }} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
+          <input style={{ ...filterInputStyle, width: '76px' }} type="number" placeholder="Min $" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
+          <input style={{ ...filterInputStyle, width: '76px' }} type="number" placeholder="Max $" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
+          <input style={{ ...filterInputStyle, width: '68px' }} type="number" placeholder="Min yr" value={minYear} onChange={e => setMinYear(e.target.value)} />
+          <input style={{ ...filterInputStyle, width: '68px' }} type="number" placeholder="Max yr" value={maxYear} onChange={e => setMaxYear(e.target.value)} />
+          <select style={selectStyle} value={maxDaysAgo} onChange={e => setMaxDaysAgo(e.target.value)}>
             <option value="">Any age</option>
             <option value="1">Today</option>
             <option value="3">3 days</option>
@@ -666,8 +839,8 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
           </select>
         </div>
       </div>
-      {loading ? <p style={styles.loading}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={styles.loading}>No leads match your filters.</p> : (
-        <div style={{ ...styles.grid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', padding: isMobile ? '16px' : '32px', gap: isMobile ? '16px' : '24px' }}>
+      {loading ? <p style={{ color: t.textMuted, textAlign: 'center', padding: '60px' }}>Loading leads...</p> : filteredLeads.length === 0 ? <p style={{ color: t.textMuted, textAlign: 'center', padding: '60px' }}>No leads match your filters.</p> : (
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '16px' : '20px', padding: isMobile ? '16px' : '28px' }}>
           {filteredLeads.map(lead => <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />)}
         </div>
       )}
@@ -707,32 +880,32 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
   const overdueCount = leads.filter(l => { const fu = getFollowUpDate(l); return fu && fu < new Date().toISOString().split('T')[0] }).length
 
   return (
-    <div style={styles.pageContent}>
-      <div style={{ ...styles.pipelineStats, padding: isMobile ? '16px' : '20px 32px', flexWrap: 'wrap' }}>
+    <div style={{ flex: 1, overflowY: 'auto', color: t.textPrimary }}>
+      <div style={{ display: 'flex', gap: isMobile ? '16px' : '32px', padding: isMobile ? '16px' : '20px 28px', borderBottom: `1px solid ${t.border}`, flexWrap: 'wrap' }}>
         {[
-          { label: 'Reached Out', value: countByStatus('reached_out'), color: '#16a34a' },
-          { label: 'Follow Up', value: countByStatus('follow_up'), color: '#d97706' },
-          { label: 'Connected', value: countByStatus('connected'), color: '#7c3aed' },
-          { label: 'Overdue', value: overdueCount, color: '#dc2626' },
+          { label: 'Reached Out', value: countByStatus('reached_out'), color: t.success },
+          { label: 'Follow Up', value: countByStatus('follow_up'), color: t.warning },
+          { label: 'Connected', value: countByStatus('connected'), color: t.purple },
+          { label: 'Overdue', value: overdueCount, color: t.danger },
         ].map(s => (
-          <div key={s.label} style={styles.pipelineStat}>
-            <span style={{ ...styles.pipelineStatNum, color: s.color, fontSize: isMobile ? '20px' : '24px' }}>{s.value}</span>
-            <span style={styles.pipelineStatLabel}>{s.label}</span>
+          <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span style={{ color: s.color, fontSize: isMobile ? '20px' : '24px', fontWeight: '700', fontFeatureSettings: '"tnum"' }}>{s.value}</span>
+            <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</span>
           </div>
         ))}
       </div>
-      <div style={{ ...styles.filterBar, padding: isMobile ? '12px 16px' : '16px 32px', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center' }}>
-        <div style={{ ...styles.tabs, flexWrap: 'wrap', gap: '6px' }}>
-          {[{ id: 'all', label: 'All' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: isMobile ? '12px 16px' : '12px 28px', borderBottom: `1px solid ${t.border}`, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {[{ id: 'all', label: 'All Active' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
             <button key={tab.id} onClick={() => setStatusFilter(tab.id)}
-              style={{ ...styles.tab, background: statusFilter === tab.id ? '#2563eb' : 'transparent', color: statusFilter === tab.id ? '#fff' : '#888', padding: '6px 12px', fontSize: '12px' }}>
+              style={{ background: statusFilter === tab.id ? t.accent : 'transparent', color: statusFilter === tab.id ? '#fff' : t.textMuted, border: `1px solid ${statusFilter === tab.id ? t.accent : t.border}`, borderRadius: t.radiusMd, padding: '5px 10px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', fontFamily: t.font }}>
               {tab.label}
             </button>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '8px', marginTop: isMobile ? '8px' : '0' }}>
-          <input style={{ ...styles.filterInput, width: '160px' }} type="text" placeholder="🔍 Search..." value={search} onChange={e => setSearch(e.target.value)} />
-          <select style={styles.filterSelect} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input style={{ ...filterInputStyle, width: '160px' }} type="text" placeholder="🔍 Search..." value={search} onChange={e => setSearch(e.target.value)} />
+          <select style={selectStyle} value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <option value="newest_found">Newest</option>
             <option value="follow_up_date">Follow Up Date</option>
             <option value="price_high">Price ↓</option>
@@ -740,23 +913,23 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
         </div>
       </div>
       {!isMobile && pipelineLeads.length > 0 && (
-        <div style={styles.pipelineHeader}>
-          <div style={{ width: '56px' }} />
-          <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Listing</div>
-          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Price</div>
-          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Status</div>
-          <div style={{ flex: 1, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Follow Up</div>
-          <div style={{ flex: 2, fontSize: '11px', color: '#555', textTransform: 'uppercase' }}>Notes</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 20px', borderBottom: `1px solid ${t.borderSubtle}` }}>
+          <div style={{ width: '54px' }} />
+          <div style={{ flex: 2, fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Listing</div>
+          <div style={{ flex: 1, fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</div>
+          <div style={{ flex: 1, fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+          <div style={{ flex: 1, fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Follow Up</div>
+          <div style={{ flex: 2, fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes</div>
           <div style={{ width: '20px' }} />
         </div>
       )}
-      {loading ? <p style={styles.loading}>Loading...</p> : pipelineLeads.length === 0 ? (
+      {loading ? <p style={{ color: t.textMuted, textAlign: 'center', padding: '60px' }}>Loading...</p> : pipelineLeads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 24px' }}>
-          <p style={{ color: '#888', fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
-          <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
+          <p style={{ color: t.textSecondary, fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
+          <p style={{ color: t.textMuted, fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
         </div>
       ) : (
-        <div style={styles.pipelineList}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           {pipelineLeads.map(lead => <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} isMobile={isMobile} />)}
         </div>
       )}
@@ -780,43 +953,42 @@ function AnalyticsPage({ leads, actions, isMobile }) {
   const withKeywords = leads.filter(l => l.matched_keywords?.length > 0).length
   const withPriceSignal = leads.filter(l => (l.discount_percent || 0) >= 20).length
 
+  // Compute 7-day delta for new leads
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const recentLeads = leads.filter(l => new Date(l.posted_at) > sevenDaysAgo).length
+
   const platformData = [
-    { name: 'Facebook', value: leads.filter(l => l.platform === 'facebook').length, color: '#1d4ed8' },
-    { name: 'Craigslist', value: leads.filter(l => l.platform === 'craigslist').length, color: '#16a34a' },
-    { name: 'OfferUp', value: leads.filter(l => l.platform === 'offerup').length, color: '#d97706' },
+    { name: 'Facebook', value: leads.filter(l => l.platform === 'facebook').length, color: t.facebook },
+    { name: 'Craigslist', value: leads.filter(l => l.platform === 'craigslist').length, color: t.craigslist },
+    { name: 'OfferUp', value: leads.filter(l => l.platform === 'offerup').length, color: t.offerup },
   ].filter(d => d.value > 0)
 
   const statusData = [
-    { name: 'New', value: newCount, color: '#2563eb' },
-    { name: 'Reached Out', value: reachedOut, color: '#16a34a' },
-    { name: 'Follow Up', value: followUp, color: '#d97706' },
-    { name: 'Connected', value: connected, color: '#7c3aed' },
-    { name: 'Not Interested', value: notInterested, color: '#dc2626' },
+    { name: 'New', value: newCount, color: t.accent },
+    { name: 'Reached Out', value: reachedOut, color: t.success },
+    { name: 'Follow Up', value: followUp, color: t.warning },
+    { name: 'Connected', value: connected, color: t.purple },
+    { name: 'Not Interested', value: notInterested, color: t.danger },
   ].filter(d => d.value > 0)
 
-  const chartStyle = { background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #2a2a2a' }
-  const tooltipStyle = { contentStyle: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '8px', color: '#fff' } }
+  const chartStyle = { background: t.surface, borderRadius: t.radiusXl, padding: '20px', border: `1px solid ${t.border}` }
+  const tooltipStyle = { contentStyle: { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, color: t.textPrimary, fontSize: '12px' } }
 
   return (
-    <div style={styles.pageContent}>
-      <div style={{ padding: isMobile ? '16px' : '32px' }}>
-        <h2 style={{ color: '#fff', fontSize: isMobile ? '18px' : '22px', margin: '0 0 24px 0', fontWeight: '700' }}>Analytics</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
-          {[
-            { label: 'Total Leads', value: total, color: '#2563eb' },
-            { label: 'Contact Rate', value: `${contactRate}%`, color: '#16a34a' },
-            { label: 'Connected', value: connected, color: '#7c3aed' },
-            { label: 'Avg Price', value: `$${avgPrice.toLocaleString()}`, color: '#d97706' },
-          ].map(stat => (
-            <div key={stat.label} style={{ background: '#1a1a1a', borderRadius: '12px', padding: isMobile ? '16px' : '20px', border: '1px solid #2a2a2a' }}>
-              <p style={{ color: stat.color, fontSize: isMobile ? '22px' : '28px', fontWeight: '800', margin: '0 0 4px 0' }}>{stat.value}</p>
-              <p style={{ color: '#888', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>{stat.label}</p>
-            </div>
-          ))}
+    <div style={{ flex: 1, overflowY: 'auto', color: t.textPrimary }}>
+      <div style={{ padding: isMobile ? '16px' : '28px' }}>
+        <h2 style={{ color: t.textPrimary, fontSize: isMobile ? '18px' : '20px', margin: '0 0 20px 0', fontWeight: '700' }}>Analytics</h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+          <KpiCard label="Total Leads" value={total} delta={recentLeads} deltaLabel="this week" color={t.accent} />
+          <KpiCard label="Contact Rate" value={`${contactRate}%`} delta={reachedOut + followUp + connected} deltaLabel="contacted" color={t.success} />
+          <KpiCard label="Connected" value={connected} delta={connected} deltaLabel="total" color={t.purple} />
+          <KpiCard label="Avg Price" value={`$${avgPrice.toLocaleString()}`} delta={0} deltaLabel="vs market" color={t.warning} />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px' }}>
+
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
           <div style={chartStyle}>
-            <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Platform</h3>
+            <h3 style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Platform</h3>
             {platformData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -824,13 +996,13 @@ function AnalyticsPage({ leads, actions, isMobile }) {
                     {platformData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip {...tooltipStyle} />
-                  <Legend formatter={v => <span style={{ color: '#888', fontSize: '12px' }}>{v}</span>} />
+                  <Legend formatter={v => <span style={{ color: t.textSecondary, fontSize: '12px' }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
-            ) : <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
+            ) : <p style={{ color: t.textMuted, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
           </div>
           <div style={chartStyle}>
-            <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Status</h3>
+            <h3 style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 16px 0' }}>Leads by Status</h3>
             {statusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
@@ -838,46 +1010,48 @@ function AnalyticsPage({ leads, actions, isMobile }) {
                     {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip {...tooltipStyle} />
-                  <Legend formatter={v => <span style={{ color: '#888', fontSize: '12px' }}>{v}</span>} />
+                  <Legend formatter={v => <span style={{ color: t.textSecondary, fontSize: '12px' }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
-            ) : <p style={{ color: '#555', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
+            ) : <p style={{ color: t.textMuted, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data yet</p>}
           </div>
         </div>
+
         <div style={{ ...chartStyle, marginBottom: '16px' }}>
-          <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Lead Signal Breakdown</h3>
+          <h3 style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 16px 0' }}>Lead Signal Breakdown</h3>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
             {[
-              { label: 'Keyword Match', value: withKeywords, color: '#fca5a5', bg: '#7f1d1d' },
-              { label: 'Price Signal', value: withPriceSignal, color: '#93c5fd', bg: '#1e3a5f' },
-              { label: 'Both Signals', value: leads.filter(l => l.matched_keywords?.length > 0 && (l.discount_percent || 0) >= 20).length, color: '#a78bfa', bg: '#4c1d95' },
+              { label: 'Keyword Match', value: withKeywords, color: '#fca5a5', bg: 'rgba(127,29,29,0.4)', border: 'rgba(220,38,38,0.3)' },
+              { label: 'Price Signal', value: withPriceSignal, color: '#93c5fd', bg: t.accentSubtle, border: 'rgba(37,99,235,0.3)' },
+              { label: 'Both Signals', value: leads.filter(l => l.matched_keywords?.length > 0 && (l.discount_percent || 0) >= 20).length, color: '#a78bfa', bg: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.3)' },
             ].map(s => (
               <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ background: s.bg, borderRadius: '8px', padding: '6px 12px' }}>
-                  <span style={{ color: s.color, fontSize: '18px', fontWeight: '700' }}>{s.value}</span>
+                <div style={{ background: s.bg, borderRadius: t.radiusMd, padding: '6px 14px', border: `1px solid ${s.border}` }}>
+                  <span style={{ color: s.color, fontSize: '20px', fontWeight: '800', fontFeatureSettings: '"tnum"' }}>{s.value}</span>
                 </div>
-                <span style={{ color: '#888', fontSize: '12px' }}>{s.label}</span>
+                <span style={{ color: t.textSecondary, fontSize: '12px' }}>{s.label}</span>
               </div>
             ))}
           </div>
         </div>
+
         <div style={chartStyle}>
-          <h3 style={{ color: '#fff', fontSize: '14px', fontWeight: '600', margin: '0 0 16px 0' }}>Outreach Breakdown</h3>
+          <h3 style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 16px 0' }}>Outreach Breakdown</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {[
-              { label: 'New Leads', value: newCount, color: '#2563eb' },
-              { label: 'Reached Out', value: reachedOut, color: '#16a34a' },
-              { label: 'Follow Up', value: followUp, color: '#d97706' },
-              { label: 'Connected', value: connected, color: '#7c3aed' },
-              { label: 'Not Interested', value: notInterested, color: '#dc2626' },
+              { label: 'New Leads', value: newCount, color: t.accent },
+              { label: 'Reached Out', value: reachedOut, color: t.success },
+              { label: 'Follow Up', value: followUp, color: t.warning },
+              { label: 'Connected', value: connected, color: t.purple },
+              { label: 'Not Interested', value: notInterested, color: t.danger },
             ].map(s => (
               <div key={s.label}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ color: '#888', fontSize: '12px' }}>{s.label}</span>
-                  <span style={{ color: '#fff', fontSize: '12px', fontWeight: '600' }}>{s.value}</span>
+                  <span style={{ color: t.textSecondary, fontSize: '12px' }}>{s.label}</span>
+                  <span style={{ color: t.textPrimary, fontSize: '12px', fontWeight: '600', fontFeatureSettings: '"tnum"' }}>{s.value}</span>
                 </div>
-                <div style={{ background: '#2a2a2a', borderRadius: '4px', height: '6px', overflow: 'hidden' }}>
-                  <div style={{ background: s.color, height: '100%', width: `${total > 0 ? (s.value / total) * 100 : 0}%`, borderRadius: '4px', transition: 'width 0.5s ease' }} />
+                <div style={{ background: t.elevated, borderRadius: t.radiusFull, height: '5px', overflow: 'hidden' }}>
+                  <div style={{ background: s.color, height: '100%', width: `${total > 0 ? (s.value / total) * 100 : 0}%`, borderRadius: t.radiusFull, transition: 'width 0.5s ease' }} />
                 </div>
               </div>
             ))}
@@ -924,6 +1098,7 @@ function Dashboard({ user }) {
     })
     : leads
 
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   const counts = {
     new: leads.filter(l => getStatus(l) === 'new').length,
     reached_out: leads.filter(l => getStatus(l) === 'reached_out').length,
@@ -931,16 +1106,32 @@ function Dashboard({ user }) {
     connected: leads.filter(l => getStatus(l) === 'connected').length,
     not_interested: leads.filter(l => getStatus(l) === 'not_interested').length,
   }
+  const deltas = {
+    new: leads.filter(l => getStatus(l) === 'new' && new Date(l.posted_at) > sevenDaysAgo).length,
+    reached_out: leads.filter(l => getStatus(l) === 'reached_out' && new Date(l.posted_at) > sevenDaysAgo).length,
+    follow_up: leads.filter(l => getStatus(l) === 'follow_up' && new Date(l.posted_at) > sevenDaysAgo).length,
+    connected: leads.filter(l => getStatus(l) === 'connected' && new Date(l.posted_at) > sevenDaysAgo).length,
+    not_interested: leads.filter(l => getStatus(l) === 'not_interested' && new Date(l.posted_at) > sevenDaysAgo).length,
+  }
+
+  const statItems = [
+    { label: 'New', value: counts.new, delta: deltas.new, color: t.accent },
+    { label: 'Reached Out', value: counts.reached_out, delta: deltas.reached_out, color: t.success },
+    { label: 'Follow Up', value: counts.follow_up, delta: deltas.follow_up, color: t.warning },
+    { label: 'Connected', value: counts.connected, delta: deltas.connected, color: t.purple },
+    { label: 'Not Interested', value: counts.not_interested, delta: deltas.not_interested, color: t.danger },
+  ]
 
   return (
-    <div style={{ ...styles.dashboardShell, flexDirection: isMobile ? 'column' : 'row' }}>
-      {!isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={false} />}
-      <div style={styles.dashboardMain}>
-        {/* Sticky top bar */}
-        <div style={{ ...styles.topBar, padding: isMobile ? '10px 16px' : '12px 24px', position: 'sticky', top: 0, zIndex: 50 }}>
-          <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: isMobile ? '28px' : '32px', objectFit: 'contain', flexShrink: 0 }} />
+    <div style={{ display: 'flex', height: '100vh', background: t.bg, fontFamily: t.font, overflow: 'hidden', flexDirection: isMobile ? 'column' : 'row' }}>
+      {!isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={false} user={user} />}
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, paddingBottom: isMobile ? '60px' : '0' }}>
+        {/* Top bar */}
+        <div style={{ background: t.surface, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '10px 16px' : '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: isMobile ? 'auto' : '56px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 50 }}>
+          {isMobile && <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain' }} />}
           <input
-            style={{ ...styles.searchBar, width: isMobile ? '180px' : '360px' }}
+            style={{ ...filterInputStyle, width: isMobile ? '160px' : '320px', padding: '8px 14px', fontSize: '13px', margin: isMobile ? '0' : '0 auto' }}
             type="text"
             placeholder="🔍 Search listings..."
             value={search}
@@ -949,19 +1140,17 @@ function Dashboard({ user }) {
           <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
 
-        {/* Sticky stats bar */}
-        <div style={{ ...styles.statsBar, padding: isMobile ? '10px 16px' : '14px 32px', gap: isMobile ? '16px' : '32px', overflowX: 'auto', position: 'sticky', top: isMobile ? '49px' : '57px', zIndex: 40 }}>
-          {[
-            { label: 'New', value: counts.new, color: '#2563eb' },
-            { label: 'Reached Out', value: counts.reached_out, color: '#16a34a' },
-            { label: 'Follow Up', value: counts.follow_up, color: '#d97706' },
-            { label: 'Connected', value: counts.connected, color: '#7c3aed' },
-            { label: 'Not Interested', value: counts.not_interested, color: '#dc2626' },
-          ].map(s => (
-            <div key={s.label} style={{ ...styles.stat, flexShrink: 0 }}>
-              <span style={{ ...styles.statNumber, color: s.color, fontSize: isMobile ? '16px' : '20px' }}>{s.value}</span>
-              <span style={{ ...styles.statLabel, fontSize: isMobile ? '9px' : '10px' }}>{s.label}</span>
-            </div>
+        {/* Stats bar */}
+        <div style={{ background: t.bg, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '10px 16px' : '12px 28px', display: 'flex', gap: isMobile ? '12px' : '0', overflowX: 'auto', flexShrink: 0, position: 'sticky', top: isMobile ? '49px' : '56px', zIndex: 40 }}>
+          {statItems.map((s, i) => (
+            <React.Fragment key={s.label}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0, padding: isMobile ? '0' : '0 24px 0 0' }}>
+                <span style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: '500' }}>{s.label}</span>
+                <span style={{ color: s.color, fontSize: isMobile ? '18px' : '22px', fontWeight: '800', fontFeatureSettings: '"tnum"', lineHeight: 1 }}>{s.value}</span>
+                <span style={{ color: t.textMuted, fontSize: '10px' }}>↑{s.delta} this week</span>
+              </div>
+              {!isMobile && i < statItems.length - 1 && <div style={{ width: '1px', background: t.border, margin: '0 0 0 0', alignSelf: 'stretch' }} />}
+            </React.Fragment>
           ))}
         </div>
 
@@ -969,7 +1158,8 @@ function Dashboard({ user }) {
         {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
         {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} isMobile={isMobile} />}
       </div>
-      {isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={true} />}
+
+      {isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={true} user={user} />}
     </div>
   )
 }
@@ -985,7 +1175,7 @@ function AppContent() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { setUser(session?.user ?? null) })
     return () => subscription.unsubscribe()
   }, [])
-  if (loading) return <div style={styles.authContainer}><p style={{ color: '#fff' }}>Loading...</p></div>
+  if (loading) return <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: t.textPrimary }}>Loading...</p></div>
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -1001,106 +1191,36 @@ export default function App() {
 }
 
 // ---------------------------------------------------------------------------
-// STYLES
+// SHARED INLINE STYLE SHORTCUTS
 // ---------------------------------------------------------------------------
-const styles = {
-  landing: { background: '#0a0a0a', minHeight: '100vh', color: '#ffffff', fontFamily: "'Inter', sans-serif" },
-  nav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #1a1a1a', position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 },
-  navButton: { background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px', color: '#fff', padding: '8px 16px', cursor: 'pointer', fontSize: '13px' },
-  hero: { display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
-  heroContent: { position: 'relative', zIndex: 1 },
-  heroBadge: { display: 'inline-block', background: 'rgba(37,99,235,0.2)', border: '1px solid #2563eb', color: '#60a5fa', fontSize: '11px', fontWeight: '600', padding: '4px 12px', borderRadius: '20px', marginBottom: '20px', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  heroTitle: { fontWeight: '800', lineHeight: '1.1', margin: '0 0 20px 0', color: '#ffffff' },
-  heroSubtitle: { color: 'rgba(255,255,255,0.7)', lineHeight: '1.7', margin: '0 0 32px 0' },
-  heroButtons: { display: 'flex', gap: '12px', justifyContent: 'center' },
-  heroCta: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' },
-  heroSecondary: { background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', padding: '14px 28px', fontSize: '15px', cursor: 'pointer' },
-  section: { borderTop: '1px solid #1a1a1a' },
-  sectionTitle: { fontSize: '28px', fontWeight: '700', textAlign: 'center', margin: '0 0 48px 0' },
-  steps: { display: 'grid', maxWidth: '900px', margin: '0 auto' },
-  step: { textAlign: 'center' },
-  stepNumber: { fontSize: '40px', fontWeight: '800', color: '#1a1a1a', marginBottom: '12px' },
-  stepTitle: { fontSize: '18px', fontWeight: '700', marginBottom: '10px', color: '#ffffff' },
-  stepText: { fontSize: '14px', color: '#888', lineHeight: '1.7' },
-  valueSection: { display: 'grid', gap: '16px', borderTop: '1px solid #1a1a1a' },
-  valueCard: { background: '#1a1a1a', borderRadius: '12px', padding: '24px', border: '1px solid #2a2a2a' },
-  valueIcon: { fontSize: '28px', marginBottom: '12px' },
-  valueTitle: { fontSize: '15px', fontWeight: '700', marginBottom: '10px', color: '#ffffff' },
-  valueText: { fontSize: '13px', color: '#888', lineHeight: '1.7', margin: 0 },
-  ctaSection: { textAlign: 'center', borderTop: '1px solid #1a1a1a' },
-  ctaTitle: { fontWeight: '800', margin: '0 0 14px 0' },
-  ctaSubtitle: { fontSize: '15px', color: '#888', margin: '0 0 32px 0' },
-  footer: { borderTop: '1px solid #1a1a1a', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  footerText: { color: '#555', fontSize: '12px', margin: 0 },
-  authContainer: { minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' },
-  authBox: { background: '#1a1a1a', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid #2a2a2a' },
-  authTitle: { color: '#ffffff', fontSize: '20px', margin: 0, textAlign: 'center' },
-  authSwitch: { color: '#888', fontSize: '13px', textAlign: 'center', margin: 0 },
-  authLink: { color: '#2563eb', cursor: 'pointer' },
-  input: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '12px 14px', color: '#ffffff', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
-  button: { background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '15px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
-  error: { color: '#ef4444', fontSize: '13px', margin: 0 },
-  // Dashboard
-  dashboardShell: { display: 'flex', height: '100vh', background: '#0a0a0a', fontFamily: "'Inter', sans-serif", overflow: 'hidden' },
-  dashboardMain: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 },
-  topBar: { background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px', flexShrink: 0 },
-  searchBar: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px', padding: '9px 14px', color: '#ffffff', fontSize: '14px', outline: 'none', fontFamily: "'Inter', sans-serif", transition: 'border-color 0.2s' },
-  statsBar: { display: 'flex', borderBottom: '1px solid #2a2a2a', background: '#111', flexShrink: 0 },
-  stat: { display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 },
-  statNumber: { fontWeight: '700' },
-  statLabel: { color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  // Sidebar — sticky via position: sticky on the shell
-  sidebar: { background: '#111', borderRight: '1px solid #1a1a1a', display: 'flex', flexDirection: 'column', padding: '12px 0', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', alignSelf: 'flex-start' },
-  sidebarLogoWrap: { padding: '8px 14px 20px 14px', borderBottom: '1px solid #1a1a1a', marginBottom: '8px', height: '44px', display: 'flex', alignItems: 'center' },
-  sidebarNav: { flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '0 6px' },
-  sidebarItem: { display: 'flex', alignItems: 'center', padding: '10px', borderRadius: '6px', cursor: 'pointer', border: 'none', width: '100%', textAlign: 'left', fontSize: '13px', fontWeight: '500', fontFamily: "'Inter', sans-serif" },
-  sidebarLogout: { margin: '8px 6px 4px 6px', padding: '10px', background: 'transparent', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#555', cursor: 'pointer', fontSize: '12px', fontFamily: "'Inter', sans-serif", display: 'flex', alignItems: 'center' },
-  bottomNav: { position: 'fixed', bottom: 0, left: 0, right: 0, background: '#111', borderTop: '1px solid #1a1a1a', display: 'flex', zIndex: 100 },
-  bottomNavItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  pageContent: { flex: 1, overflowY: 'auto', color: '#fff' },
-  filterBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2a2a2a', gap: '12px', flexWrap: 'wrap' },
-  tabs: { display: 'flex', gap: '6px' },
-  tab: { border: '1px solid #3a3a3a', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
-  filterSelect: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '7px 10px', color: '#ffffff', fontSize: '12px', outline: 'none', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  filterInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '7px 10px', color: '#ffffff', fontSize: '13px', outline: 'none', fontFamily: "'Inter', sans-serif" },
-  grid: { display: 'grid' },
-  card: { background: '#1a1a1a', borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a2a', display: 'flex', flexDirection: 'column' },
-  platformBanner: { padding: '4px 12px', fontSize: '10px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.08em' },
-  alertBanner: { background: '#111', borderBottom: '1px solid #2a2a2a', padding: '6px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' },
-  alertPill: { background: '#7f1d1d', color: '#fca5a5', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' },
-  pricePill: { background: '#1e3a5f', color: '#93c5fd', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '20px' },
-  cardImage: { width: '100%', height: '200px', objectFit: 'cover' },
-  photoBtn: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', fontSize: '24px', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  photoCounter: { position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: '11px', padding: '2px 8px', borderRadius: '10px' },
-  cardBody: { padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px' },
-  cardTitle: { color: '#ffffff', fontSize: '14px', margin: 0, fontWeight: '600' },
-  price: { color: '#ffffff', fontSize: '20px', fontWeight: '700' },
-  checklist: { background: '#2a2a2a', borderRadius: '8px', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: '4px' },
-  checkItem: { display: 'flex', gap: '8px', fontSize: '12px' },
-  checkLabel: { color: '#888', minWidth: '90px' },
-  checkValue: { color: '#ffffff', fontWeight: '500' },
-  cardMeta: { color: '#888', fontSize: '12px', margin: 0 },
-  link: { color: '#2563eb', fontSize: '13px', textDecoration: 'none', fontWeight: '600' },
-  notesSection: { marginTop: '4px' },
-  notesDisplay: { cursor: 'pointer', borderRadius: '6px', padding: '6px 8px', border: '1px dashed #3a3a3a' },
-  notesText: { color: '#ccc', fontSize: '12px', margin: 0 },
-  notesPlaceholder: { color: '#555', fontSize: '12px', margin: 0 },
-  notesInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '8px', color: '#ffffff', fontSize: '13px', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
-  notesButtons: { display: 'flex', gap: '8px', marginTop: '6px' },
-  statusRow: { display: 'flex', gap: '5px', flexWrap: 'wrap', marginTop: '6px' },
-  statusBtn: { border: '1px solid', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', fontWeight: '600', fontFamily: "'Inter', sans-serif" },
-  followUpRow: { display: 'flex', gap: '8px', alignItems: 'center' },
-  dateInput: { background: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 8px', color: '#ffffff', fontSize: '12px', outline: 'none' },
-  saveBtn: { background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  cancelBtn: { background: 'transparent', color: '#888', border: '1px solid #3a3a3a', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: "'Inter', sans-serif" },
-  loading: { color: '#888', textAlign: 'center', padding: '60px' },
-  pipelineStats: { display: 'flex', borderBottom: '1px solid #2a2a2a', gap: '24px' },
-  pipelineStat: { display: 'flex', flexDirection: 'column', gap: '2px' },
-  pipelineStatNum: { fontWeight: '700' },
-  pipelineStatLabel: { fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' },
-  pipelineHeader: { display: 'flex', alignItems: 'center', gap: '16px', padding: '10px 24px', borderBottom: '1px solid #1a1a1a' },
-  pipelineList: { display: 'flex', flexDirection: 'column' },
-  pipelineRow: { display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 20px', borderBottom: '1px solid #1a1a1a', cursor: 'pointer' },
-  pipelinePhoto: { flexShrink: 0 },
-  pipelineExpanded: { background: '#111', padding: '16px 20px 20px', borderBottom: '1px solid #1a1a1a' },
+const inputStyle = {
+  background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd,
+  padding: '10px 12px', color: t.textPrimary, fontSize: '14px', outline: 'none',
+  width: '100%', boxSizing: 'border-box', fontFamily: t.font,
+}
+const primaryBtnStyle = {
+  background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd,
+  padding: '11px', fontSize: '14px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font,
+  transition: 'background 0.1s',
+}
+const saveBtnStyle = {
+  background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd,
+  padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font, fontWeight: '600',
+}
+const cancelBtnStyle = {
+  background: 'transparent', color: t.textMuted, border: `1px solid ${t.border}`,
+  borderRadius: t.radiusMd, padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font,
+}
+const dateInputStyle = {
+  background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd,
+  padding: '5px 8px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font,
+}
+const selectStyle = {
+  background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd,
+  padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none',
+  cursor: 'pointer', fontFamily: t.font,
+}
+const filterInputStyle = {
+  background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd,
+  padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font,
 }
