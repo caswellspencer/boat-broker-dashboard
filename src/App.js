@@ -830,6 +830,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
           </div>
         ))}
       </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '12px 16px' : '12px 28px', borderBottom: `1px solid ${t.border}`, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {[{ id: 'all', label: 'All Active' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
@@ -848,23 +849,17 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
           </select>
         </div>
       </div>
-      {!isMobile && pipelineLeads.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 20px', borderBottom: `1px solid ${t.borderSubtle}` }}>
-          <div style={{ width: '54px' }} />
-          {['Listing', 'Price', 'Status', 'Follow Up', 'Notes'].map((h, i) => (
-            <div key={h} style={{ flex: [2, 1, 1, 1, 2][i], fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</div>
-          ))}
-          <div style={{ width: '20px' }} />
-        </div>
-      )}
+
       {loading ? <p style={{ color: t.textMuted, textAlign: 'center', padding: '60px' }}>Loading...</p> : pipelineLeads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 24px' }}>
           <p style={{ color: t.textSecondary, fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
           <p style={{ color: t.textMuted, fontSize: '13px', margin: 0 }}>Mark leads as Reached Out, Follow Up, or Connected to track them here.</p>
         </div>
       ) : (
-        <div>
-          {pipelineLeads.map(lead => <PipelineRow key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} isMobile={isMobile} />)}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? '16px' : '20px', padding: isMobile ? '16px' : '28px' }}>
+          {pipelineLeads.map(lead => (
+            <LeadCard key={lead.id} lead={lead} brokerEmail={brokerEmail} action={actions[lead.listing_id]} onActionChange={onActionChange} />
+          ))}
         </div>
       )}
     </div>
