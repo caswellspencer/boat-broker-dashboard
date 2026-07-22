@@ -3,48 +3,32 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { supabase, getSupportedCities, createBrokerSubscription, getBrokerActions, upsertBrokerAction } from './supabaseClient'
 
-// ---------------------------------------------------------------------------
-// DESIGN TOKENS
-// ---------------------------------------------------------------------------
 const t = {
-  bg: '#0d0d0f',
-  surface: '#141416',
-  elevated: '#1a1a1d',
-  overlay: '#222226',
-  border: '#2a2a2f',
-  borderSubtle: '#1f1f24',
-  textPrimary: '#f0f0f2',
-  textSecondary: '#a0a0aa',
-  textMuted: '#5a5a66',
-  accent: '#2563eb',
-  accentHover: '#1d4ed8',
-  accentSubtle: 'rgba(37,99,235,0.12)',
-  success: '#16a34a',
-  successSubtle: 'rgba(22,163,74,0.12)',
-  warning: '#d97706',
-  warningSubtle: 'rgba(217,119,6,0.12)',
-  danger: '#dc2626',
-  dangerSubtle: 'rgba(220,38,38,0.12)',
-  purple: '#7c3aed',
-  purpleSubtle: 'rgba(124,58,237,0.12)',
-  facebook: '#1d4ed8',
-  craigslist: '#16a34a',
-  offerup: '#d97706',
-  radiusSm: '4px',
-  radiusMd: '6px',
-  radiusLg: '10px',
-  radiusXl: '14px',
-  radiusFull: '9999px',
+  bg: '#0d0d0f', surface: '#141416', elevated: '#1a1a1d', overlay: '#222226',
+  border: '#2a2a2f', borderSubtle: '#1f1f24',
+  textPrimary: '#f0f0f2', textSecondary: '#a0a0aa', textMuted: '#5a5a66',
+  accent: '#2563eb', accentHover: '#1d4ed8', accentSubtle: 'rgba(37,99,235,0.12)',
+  success: '#16a34a', successSubtle: 'rgba(22,163,74,0.12)',
+  warning: '#d97706', warningSubtle: 'rgba(217,119,6,0.12)',
+  danger: '#dc2626', dangerSubtle: 'rgba(220,38,38,0.12)',
+  purple: '#7c3aed', purpleSubtle: 'rgba(124,58,237,0.12)',
+  facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706',
+  radiusSm: '4px', radiusMd: '6px', radiusLg: '10px', radiusXl: '14px', radiusFull: '9999px',
   font: "'Inter', -apple-system, sans-serif",
 }
 
-const STATUS_COLORS = { new: t.accent, reached_out: t.success, not_interested: t.danger, follow_up: t.warning, connected: t.purple }
+const STATUS_COLORS = { new: '#2563eb', reached_out: '#16a34a', not_interested: '#dc2626', follow_up: '#d97706', connected: '#7c3aed' }
 const STATUS_LABELS = { new: 'New', reached_out: 'Reached Out', not_interested: 'Not Interested', follow_up: 'Follow Up', connected: 'Connected' }
-const PLATFORM_COLORS = { facebook: t.facebook, craigslist: t.craigslist, offerup: t.offerup }
+const PLATFORM_COLORS = { facebook: '#1d4ed8', craigslist: '#16a34a', offerup: '#d97706' }
 
-// ---------------------------------------------------------------------------
-// HOOKS
-// ---------------------------------------------------------------------------
+const inputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '10px 12px', color: t.textPrimary, fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: t.font }
+const primaryBtnStyle = { background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '11px', fontSize: '14px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font }
+const saveBtnStyle = { background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font, fontWeight: '600' }
+const cancelBtnStyle = { background: 'transparent', color: t.textMuted, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font }
+const dateInputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '5px 8px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font }
+const selectStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none', cursor: 'pointer', fontFamily: t.font }
+const filterInputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font }
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   useEffect(() => {
@@ -55,9 +39,6 @@ function useIsMobile() {
   return isMobile
 }
 
-// ---------------------------------------------------------------------------
-// HELPERS
-// ---------------------------------------------------------------------------
 function getInitials(email) {
   if (!email) return '?'
   const username = email.split('@')[0]
@@ -82,20 +63,6 @@ function getDaysAgo(dateStr) {
   return `${diff} days ago`
 }
 
-// ---------------------------------------------------------------------------
-// SHARED STYLES
-// ---------------------------------------------------------------------------
-const inputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '10px 12px', color: t.textPrimary, fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: t.font }
-const primaryBtnStyle = { background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '11px', fontSize: '14px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font }
-const saveBtnStyle = { background: t.accent, color: '#fff', border: 'none', borderRadius: t.radiusMd, padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font, fontWeight: '600' }
-const cancelBtnStyle = { background: 'transparent', color: t.textMuted, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 12px', fontSize: '12px', cursor: 'pointer', fontFamily: t.font }
-const dateInputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '5px 8px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font }
-const selectStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none', cursor: 'pointer', fontFamily: t.font }
-const filterInputStyle = { background: t.elevated, border: `1px solid ${t.border}`, borderRadius: t.radiusMd, padding: '6px 10px', color: t.textPrimary, fontSize: '12px', outline: 'none', fontFamily: t.font }
-
-// ---------------------------------------------------------------------------
-// ICONS
-// ---------------------------------------------------------------------------
 function IconLeads({ color = t.textMuted, size = 17 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
 }
@@ -109,9 +76,6 @@ function IconSignOut({ color = t.textMuted, size = 15 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
 }
 
-// ---------------------------------------------------------------------------
-// NOTIFICATION TOGGLE
-// ---------------------------------------------------------------------------
 function NotificationToggle({ label, desc, defaultOn }) {
   const [on, setOn] = useState(defaultOn)
   return (
@@ -127,9 +91,6 @@ function NotificationToggle({ label, desc, defaultOn }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// PROFILE DROPDOWN
-// ---------------------------------------------------------------------------
 function ProfileDropdown({ user, onLogout }) {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState('menu')
@@ -158,18 +119,14 @@ function ProfileDropdown({ user, onLogout }) {
       <button onClick={() => { setOpen(!open); setView('menu') }} style={{ background: 'transparent', border: `1px solid ${open ? t.border : 'transparent'}`, borderRadius: t.radiusFull, cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '3px', transition: 'border-color 0.15s' }}>
         <Avatar email={user.email} size={30} />
       </button>
-
       {open && (
         <div style={{ position: 'absolute', right: 0, top: '42px', background: t.surface, border: `1px solid ${t.border}`, borderRadius: t.radiusLg, minWidth: '240px', zIndex: 200, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.5)' }}>
-
           {view === 'menu' && (
             <>
               <div style={{ padding: '14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Avatar email={user.email} size={36} />
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 1px 0' }}>
-                    {user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                  </p>
+                  <p style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: '0 0 1px 0' }}>{user.email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
                   <p style={{ color: t.textMuted, fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
                 </div>
               </div>
@@ -191,14 +148,12 @@ function ProfileDropdown({ user, onLogout }) {
               </div>
             </>
           )}
-
           {view !== 'menu' && (
             <>
               <div style={{ padding: '11px 14px', borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button onClick={() => setView('menu')} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer', fontSize: '15px', padding: '0', lineHeight: 1 }}>←</button>
                 <p style={{ color: t.textPrimary, fontSize: '13px', fontWeight: '600', margin: 0 }}>{viewTitle[view]}</p>
               </div>
-
               {view === 'profile' && (
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {[{ label: 'Email', value: user.email }, { label: 'Market', value: 'Miami, FL' }, { label: 'Scrape Schedule', value: '9:00 AM & 5:00 PM ET daily' }].map(item => (
@@ -209,7 +164,6 @@ function ProfileDropdown({ user, onLogout }) {
                   ))}
                 </div>
               )}
-
               {view === 'notifications' && (
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <NotificationToggle label="New Lead Alerts" desc="Email when new motivated sellers are found" defaultOn={true} />
@@ -218,7 +172,6 @@ function ProfileDropdown({ user, onLogout }) {
                   <p style={{ color: t.textMuted, fontSize: '11px', margin: 0 }}>Changes take effect on the next scrape cycle.</p>
                 </div>
               )}
-
               {view === 'support' && (
                 <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0, lineHeight: '1.6' }}>Have a question or found a bug? Reach out and we'll get back to you within 24 hours.</p>
@@ -241,9 +194,6 @@ function ProfileDropdown({ user, onLogout }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// KPI STAT CARD
-// ---------------------------------------------------------------------------
 function KpiCard({ label, value, delta, deltaLabel, color }) {
   const isPositive = delta > 0
   const deltaColor = isPositive ? t.success : t.textMuted
@@ -259,9 +209,6 @@ function KpiCard({ label, value, delta, deltaLabel, color }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// SIDEBAR / BOTTOM NAV
-// ---------------------------------------------------------------------------
 function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
   const [hovered, setHovered] = useState(false)
   const navItems = [
@@ -269,7 +216,6 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
     { id: 'pipeline', label: 'Pipeline', Icon: IconPipeline },
     { id: 'analytics', label: 'Analytics', Icon: IconAnalytics },
   ]
-
   if (isMobile) {
     return (
       <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: t.surface, borderTop: `1px solid ${t.border}`, display: 'flex', zIndex: 100 }}>
@@ -286,17 +232,12 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
       </div>
     )
   }
-
   return (
-    <div
-      style={{ background: t.surface, borderRight: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', width: hovered ? '200px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div style={{ background: t.surface, borderRight: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh', width: hovered ? '200px' : '52px', transition: 'width 0.2s ease', overflow: 'hidden' }}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       <div style={{ padding: '14px', borderBottom: `1px solid ${t.border}`, height: '56px', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
         <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '26px', objectFit: 'contain', opacity: hovered ? 1 : 0, transition: 'opacity 0.15s', whiteSpace: 'nowrap', minWidth: '120px' }} />
       </div>
-
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', padding: '8px 6px', overflowY: 'auto' }}>
         {navItems.map(({ id, label, Icon }) => {
           const active = activePage === id
@@ -309,13 +250,11 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
           )
         })}
       </nav>
-
       <div style={{ borderTop: `1px solid ${t.border}`, padding: '10px 6px', flexShrink: 0 }}>
         <button onClick={onLogout}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: t.radiusMd, cursor: 'pointer', border: 'none', background: 'transparent', width: '100%', textAlign: 'left', fontFamily: t.font, justifyContent: hovered ? 'flex-start' : 'center', transition: 'background 0.1s' }}
           onMouseEnter={e => e.currentTarget.style.background = t.overlay}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
           <Avatar email={user?.email} size={28} />
           {hovered && (
             <div style={{ minWidth: 0, flex: 1 }}>
@@ -331,9 +270,6 @@ function Sidebar({ activePage, setActivePage, onLogout, isMobile, user }) {
   )
 }
 
-// ---------------------------------------------------------------------------
-// LANDING PAGE
-// ---------------------------------------------------------------------------
 function LandingPage() {
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -397,9 +333,6 @@ function LandingPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// LOGIN
-// ---------------------------------------------------------------------------
 function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -427,9 +360,6 @@ function LoginPage() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// SIGNUP
-// ---------------------------------------------------------------------------
 function SignupPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -593,105 +523,6 @@ function LeadCard({ lead, brokerEmail, action, onActionChange }) {
 }
 
 // ---------------------------------------------------------------------------
-// PIPELINE ROW
-// ---------------------------------------------------------------------------
-function PipelineRow({ lead, brokerEmail, action, onActionChange, isMobile }) {
-  const [status, setStatus] = useState(action?.status || 'new')
-  const [followUpDate, setFollowUpDate] = useState(action?.follow_up_date || '')
-  const [notes, setNotes] = useState(action?.notes || '')
-  const [editingNotes, setEditingNotes] = useState(false)
-  const [savingNotes, setSavingNotes] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-
-  const handleStatus = async (newStatus) => { setStatus(newStatus); await upsertBrokerAction(brokerEmail, lead.listing_id, { status: newStatus }); if (onActionChange) onActionChange() }
-  const handleFollowUp = async () => { await upsertBrokerAction(brokerEmail, lead.listing_id, { follow_up_date: followUpDate }) }
-  const handleSaveNotes = async () => { setSavingNotes(true); await upsertBrokerAction(brokerEmail, lead.listing_id, { notes }); setSavingNotes(false); setEditingNotes(false) }
-
-  const platform = lead.platform || 'facebook'
-  const platformColor = PLATFORM_COLORS[platform] || t.facebook
-  const platformLabel = platform.charAt(0).toUpperCase() + platform.slice(1)
-  const photo = lead.photos?.[0] || lead.image_url
-
-  const getFollowUpColor = () => {
-    if (!followUpDate) return t.textMuted
-    const today = new Date().toISOString().split('T')[0]
-    if (followUpDate < today) return t.danger
-    if (followUpDate === today) return t.warning
-    return t.success
-  }
-
-  return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 20px', borderBottom: `1px solid ${t.borderSubtle}`, cursor: 'pointer', borderLeft: `2px solid ${STATUS_COLORS[status] || t.accent}` }} onClick={() => setExpanded(!expanded)}>
-        <div style={{ flexShrink: 0 }}>
-          {photo ? <img src={photo} alt={lead.title} style={{ width: '54px', height: '54px', objectFit: 'cover', borderRadius: t.radiusMd }} />
-            : <div style={{ width: '54px', height: '54px', background: t.elevated, borderRadius: t.radiusMd, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMuted, fontSize: '20px' }}>🚤</div>}
-        </div>
-        <div style={{ flex: 2, minWidth: isMobile ? '120px' : 'auto' }}>
-          <p style={{ color: t.textPrimary, fontWeight: '600', fontSize: '13px', margin: '0 0 3px 0' }}>{lead.title}</p>
-          <p style={{ color: t.textSecondary, fontSize: '11px', margin: 0 }}>📍 {lead.location || 'Unknown'}</p>
-        </div>
-        <div style={{ flex: 1 }}>
-          <p style={{ color: t.textPrimary, fontWeight: '700', fontSize: '14px', margin: 0, fontFeatureSettings: '"tnum"' }}>${lead.price?.toLocaleString()}</p>
-          <div style={{ display: 'inline-block', background: platformColor, borderRadius: t.radiusSm, padding: '2px 5px', fontSize: '9px', color: '#fff', fontWeight: '700', marginTop: '3px' }}>{platformLabel}</div>
-        </div>
-        {!isMobile && (
-          <>
-            <div style={{ flex: 1 }}><span style={{ background: STATUS_COLORS[status], color: '#fff', borderRadius: t.radiusSm, padding: '3px 8px', fontSize: '10px', fontWeight: '700' }}>{STATUS_LABELS[status]}</span></div>
-            <div style={{ flex: 1 }}>{followUpDate ? <p style={{ color: getFollowUpColor(), fontSize: '11px', margin: 0, fontWeight: '600' }}>📅 {new Date(followUpDate).toLocaleDateString()}</p> : <p style={{ color: t.textMuted, fontSize: '11px', margin: 0 }}>No follow up</p>}</div>
-            <div style={{ flex: 2 }}><p style={{ color: t.textSecondary, fontSize: '11px', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>{notes || '+ Add notes'}</p></div>
-          </>
-        )}
-        <div style={{ color: t.textMuted, fontSize: '11px' }}>{expanded ? '▲' : '▼'}</div>
-      </div>
-      {expanded && (
-        <div style={{ background: t.bg, padding: '16px 20px 20px', borderBottom: `1px solid ${t.borderSubtle}`, paddingLeft: isMobile ? '16px' : '100px' }}>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ width: '100%' }}>
-              <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Status</p>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {['reached_out', 'follow_up', 'connected', 'not_interested'].map(s => (
-                  <button key={s} onClick={e => { e.stopPropagation(); handleStatus(s) }}
-                    style={{ border: `1px solid ${STATUS_COLORS[s]}`, borderRadius: t.radiusMd, padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: '600', fontFamily: t.font, background: status === s ? STATUS_COLORS[s] : 'transparent', color: status === s ? '#fff' : STATUS_COLORS[s] }}>
-                    {STATUS_LABELS[s]}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Follow Up Date</p>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input type="date" value={followUpDate} onChange={e => setFollowUpDate(e.target.value)} style={dateInputStyle} onClick={e => e.stopPropagation()} />
-                <button onClick={e => { e.stopPropagation(); handleFollowUp() }} style={saveBtnStyle}>Save</button>
-              </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <a href={lead.url} target="_blank" rel="noreferrer" style={{ color: t.accent, fontSize: '13px', textDecoration: 'none', fontWeight: '600' }} onClick={e => e.stopPropagation()}>View Listing →</a>
-            </div>
-          </div>
-          <div style={{ marginTop: '16px' }}>
-            <p style={{ color: t.textMuted, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>Notes</p>
-            {editingNotes ? (
-              <div onClick={e => e.stopPropagation()}>
-                <textarea style={{ ...inputStyle, resize: 'vertical', boxSizing: 'border-box' }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes about this seller..." rows={3} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                  <button onClick={e => { e.stopPropagation(); handleSaveNotes() }} style={saveBtnStyle} disabled={savingNotes}>{savingNotes ? 'Saving...' : 'Save'}</button>
-                  <button onClick={e => { e.stopPropagation(); setEditingNotes(false) }} style={cancelBtnStyle}>Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <div onClick={e => { e.stopPropagation(); setEditingNotes(true) }} style={{ cursor: 'pointer', borderRadius: t.radiusMd, padding: '6px 8px', border: `1px dashed ${t.border}`, boxSizing: 'border-box' }}>
-                {notes ? <p style={{ color: t.textSecondary, fontSize: '12px', margin: 0 }}>📝 {notes}</p> : <p style={{ color: t.textMuted, fontSize: '12px', margin: 0 }}>+ Add notes</p>}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // LEADS PAGE
 // ---------------------------------------------------------------------------
 function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMobile }) {
@@ -790,7 +621,7 @@ function LeadsPage({ leads, actions, brokerEmail, onActionChange, loading, isMob
 }
 
 // ---------------------------------------------------------------------------
-// PIPELINE PAGE
+// PIPELINE PAGE — grid card layout
 // ---------------------------------------------------------------------------
 function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, isMobile }) {
   const [statusFilter, setStatusFilter] = useState('all')
@@ -822,8 +653,14 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
+      {/* Stats */}
       <div style={{ display: 'flex', gap: isMobile ? '16px' : '32px', padding: isMobile ? '16px' : '20px 28px', borderBottom: `1px solid ${t.border}`, flexWrap: 'wrap' }}>
-        {[{ label: 'Reached Out', value: countByStatus('reached_out'), color: t.success }, { label: 'Follow Up', value: countByStatus('follow_up'), color: t.warning }, { label: 'Connected', value: countByStatus('connected'), color: t.purple }, { label: 'Overdue', value: overdueCount, color: t.danger }].map(s => (
+        {[
+          { label: 'Reached Out', value: countByStatus('reached_out'), color: t.success },
+          { label: 'Follow Up', value: countByStatus('follow_up'), color: t.warning },
+          { label: 'Connected', value: countByStatus('connected'), color: t.purple },
+          { label: 'Overdue', value: overdueCount, color: t.danger },
+        ].map(s => (
           <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <span style={{ color: s.color, fontSize: isMobile ? '20px' : '24px', fontWeight: '700', fontFeatureSettings: '"tnum"' }}>{s.value}</span>
             <span style={{ fontSize: '10px', color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</span>
@@ -831,6 +668,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
         ))}
       </div>
 
+      {/* Filters */}
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: isMobile ? '12px 16px' : '12px 28px', borderBottom: `1px solid ${t.border}`, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {[{ id: 'all', label: 'All Active' }, { id: 'reached_out', label: 'Reached Out' }, { id: 'follow_up', label: 'Follow Up' }, { id: 'connected', label: 'Connected' }].map(tab => (
@@ -850,6 +688,7 @@ function PipelinePage({ leads, actions, brokerEmail, onActionChange, loading, is
         </div>
       </div>
 
+      {/* Grid */}
       {loading ? <p style={{ color: t.textMuted, textAlign: 'center', padding: '60px' }}>Loading...</p> : pipelineLeads.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 24px' }}>
           <p style={{ color: t.textSecondary, fontSize: '15px', margin: '0 0 8px 0' }}>Your pipeline is empty</p>
@@ -986,7 +825,7 @@ function AnalyticsPage({ leads, actions, isMobile }) {
 }
 
 // ---------------------------------------------------------------------------
-// DASHBOARD SHELL
+// DASHBOARD
 // ---------------------------------------------------------------------------
 function Dashboard({ user }) {
   const [leads, setLeads] = useState([])
@@ -1048,22 +887,15 @@ function Dashboard({ user }) {
   return (
     <div style={{ display: 'flex', height: '100vh', background: t.bg, fontFamily: t.font, overflow: 'hidden', flexDirection: isMobile ? 'column' : 'row' }}>
       {!isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={false} user={user} />}
-
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0, paddingBottom: isMobile ? '60px' : '0' }}>
-        {/* Top bar */}
         <div style={{ background: t.surface, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '10px 16px' : '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: isMobile ? 'auto' : '56px', flexShrink: 0, position: 'sticky', top: 0, zIndex: 50 }}>
           {isMobile && <img src="/yachtwatch-logo.png" alt="YachtWatch" style={{ height: '28px', objectFit: 'contain' }} />}
           <input
             style={{ ...filterInputStyle, width: isMobile ? '160px' : '320px', padding: '8px 14px', fontSize: '13px', margin: isMobile ? '0' : '0 auto' }}
-            type="text"
-            placeholder="🔍 Search listings..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+            type="text" placeholder="🔍 Search listings..." value={search} onChange={e => setSearch(e.target.value)}
           />
           <ProfileDropdown user={user} onLogout={handleLogout} />
         </div>
-
-        {/* Stats bar */}
         <div style={{ background: t.bg, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '10px 16px' : '12px 28px', display: 'flex', gap: isMobile ? '12px' : '0', overflowX: 'auto', flexShrink: 0, position: 'sticky', top: isMobile ? '49px' : '56px', zIndex: 40 }}>
           {statItems.map((s, i) => (
             <React.Fragment key={s.label}>
@@ -1076,20 +908,15 @@ function Dashboard({ user }) {
             </React.Fragment>
           ))}
         </div>
-
         {activePage === 'leads' && <LeadsPage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
         {activePage === 'pipeline' && <PipelinePage leads={filteredLeads} actions={actions} brokerEmail={brokerEmail} onActionChange={fetchLeads} loading={loading} isMobile={isMobile} />}
         {activePage === 'analytics' && <AnalyticsPage leads={leads} actions={actions} isMobile={isMobile} />}
       </div>
-
       {isMobile && <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={handleLogout} isMobile={true} user={user} />}
     </div>
   )
 }
 
-// ---------------------------------------------------------------------------
-// APP
-// ---------------------------------------------------------------------------
 function AppContent() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
